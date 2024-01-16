@@ -1,0 +1,32 @@
+﻿@using System.Net.Http
+@using RegistroAsistenciasSMART.Services.Interfaces.Auditoria
+@using RegistroAsistenciasSMART.Services.Interfaces.Utilidades
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.JSInterop
+@using RegistroAsistenciasSMART.Web
+@using RegistroAsistenciasSMART.Web.Shared
+@using RegistroAsistenciasSMART.Web.Helpers
+@using RegistroAsistenciasSMART.Model.Response
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using static RegistroAsistenciasSMART.Web.Helpers.IJSRuntimeExtension
+@using Radzen
+@using Radzen.Blazor
+@using RegistroAsistenciasSMART.Web.Utilidades
+@using RegistroAsistenciasSMART.Web.Authentication
+@using System.Security.Claims
+@using RegistroAsistenciasSMART.Web.Authorization;
+
+
+@inject IJSRuntime _jsRuntime
+@inject NavigationManager _navigationManager
+@inject AuthenticationStateProvider _authStateProvider
+@inject IWebHostEnvironment env
+@inject IAuditoriaService _auditoriaService
+@inject IConfiguration _config
+@inject IEncryptService _encryptService
+

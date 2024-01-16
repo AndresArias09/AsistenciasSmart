@@ -1,0 +1,296 @@
+﻿
+@using RegistroAsistenciasSMART.Model.Models.Configuracion.Perfilamiento
+@using RegistroAsistenciasSMART.Services.Interfaces.Configuracion.Perfilamiento
+@using RegistroAsistenciasSMART.Web.Services
+@using Microsoft.AspNetCore.Components.Server.Circuits;
+
+@inherits LayoutComponentBase
+
+@inject IUserService _userService
+@inject ICircuitUserService _circuitUserServer
+@inject CircuitHandler BlazorCircuitHandler
+@inject ILogger<MainLayout> _logger
+
+<!-- Global stylesheets -->
+<link href="assetsMainSite/fonts/inter/inter.css" rel="stylesheet" type="text/css">
+<link href="assetsMainSite/icons/phosphor/styles.min.css" rel="stylesheet" type="text/css">
+<link href="assetsMainSite/css/ltr/all.min.css" id="stylesheet" rel="stylesheet" type="text/css">
+
+<PageTitle>SMART</PageTitle>
+
+<_LoadingSpinner></_LoadingSpinner>
+
+<style>
+	.rz-autocomplete {
+		overflow: unset !important;
+	}
+</style>
+
+@if (!_isLoading)
+{
+	<!-- Main navbar -->
+	<div class="navbar navbar-dark navbar-expand-lg navbar-static border-bottom border-bottom-white border-opacity-10">
+		<div class="container-fluid">
+			<div class="d-flex d-lg-none me-2">
+				<button type="button" class="navbar-toggler sidebar-mobile-main-toggle rounded-pill">
+					<i class="ph-list"></i>
+				</button>
+			</div>
+
+			<div class="navbar-brand flex-1 flex-lg-0">
+				<a href="/Home" class="d-inline-flex align-items-center">
+					<img src="https://smart.edu.co/wp-content/uploads/2021/04/logosweb.png" style="width:150px;height:60px" alt="">
+				</a>
+			</div>
+
+			<ul class="nav flex-row">
+				<li class="nav-item d-lg-none">
+					<a href="#navbar_search" class="navbar-nav-link navbar-nav-link-icon rounded-pill" data-bs-toggle="collapse">
+						<i class="ph-magnifying-glass"></i>
+					</a>
+				</li>
+			</ul>
+
+			<ul class="nav flex-row justify-content-end order-1 order-lg-2">
+				
+
+				<li class="nav-item nav-item-dropdown-lg dropdown ms-lg-2">
+					<a href="javascript:void(0)" class="navbar-nav-link align-items-center rounded-pill p-1" data-bs-toggle="dropdown">
+						<div class="status-indicator-container">
+							<img src="assetsMainSite/images/user-icon.png" class="w-32px h-32px rounded-pill" alt="">
+							<span class="status-indicator bg-success"></span>
+						</div>
+						<span class="d-none d-lg-inline-block mx-lg-2">@session.UserName</span>
+					</a>
+
+					<div class="dropdown-menu dropdown-menu-end">
+						<a href="javascript:void(0)" @onclick="CerrarSesion" class="dropdown-item">
+							<i class="ph-sign-out me-2"></i>
+							Cerrar Sesión
+						</a>
+					</div>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<!-- /main navbar -->
+	<!-- Page content -->
+	<div class="page-content">
+
+		<!-- Main sidebar -->
+		<NavMenu></NavMenu>
+		<!-- /main sidebar -->
+		<!-- Main content -->
+		<div class="content-wrapper">
+
+			<!-- Inner content -->
+			<div class="content-inner">
+				<div class="content">
+					<CascadingValue Value="session">
+						@Body
+					</CascadingValue>
+				</div>
+				
+				
+
+				<!-- Footer -->
+				<div class="navbar navbar-sm navbar-footer border-top">
+					<div class="container-fluid">
+						<span>&copy; @DateTime.Now.Year SMART</span>
+
+						
+					</div>
+				</div>
+				<!-- /footer -->
+
+			</div>
+			<!-- /inner content -->
+
+		</div>
+		<!-- /main content -->
+
+	</div>
+	<!-- /page content -->
+
+}
+
+@code {
+
+	private bool _isLoading = true;
+	private string usuario = "";
+
+
+	private UserSession session = new UserSession();
+
+
+	protected override async Task OnAfterRenderAsync(bool firsRender)
+	{
+		try
+		{
+			if (firsRender)
+			{
+				// await ValidarAutenticacionUsuario();
+
+				_isLoading = false;
+				StateHasChanged();
+
+			}
+		}
+		catch (Exception exe)
+		{
+			_logger.LogError(exe, $"Error al cargar Site Template");
+		}
+	}
+
+	private async Task ValidarAutenticacionUsuario()
+	{
+		try
+		{
+			var authState = await _authStateProvider.GetAuthenticationStateAsync();
+
+			var user = authState.User;
+
+			var ipAddress = await _jsRuntime.GetIpAddress();
+
+			if (user.Identity.IsAuthenticated)
+			{
+				var customAuthStateProvider = (CustomAuthenticationStateProvider)_authStateProvider;
+				session = await customAuthStateProvider.GetActualUser();
+
+				//La sesión se vence si han pasado más de 2 días desde último login
+				if ((DateTime.Now - session.last_login.GetValueOrDefault()).TotalDays > 2)
+				{
+					await _userService.registrarAuditoriaCierreSesion(session.id_auditoria_login, session.UserName, ipAddress, $"La sesión se vence ya que han han pasado más de 2 días desde último login {session.last_login.GetValueOrDefault()}");
+					await LimpiarSesion();
+					return;
+				}
+
+				if (session.RememberMe)
+				{
+					session.Ip = ipAddress;
+					session.last_login = DateTime.Now;
+					await customAuthStateProvider.UpdateAuthenticationState(session);
+
+					CircuitHandlerService handler = (CircuitHandlerService)BlazorCircuitHandler;
+					_circuitUserServer.Connect(handler.CirtuidId, session);
+					usuario = session.UserName;
+
+					await _jsRuntime.InitializeInactivityTimer(DotNetObjectReference.Create(this));
+				}
+				else
+				{
+					//Si no tiene activado el rememberme, el tiempo de sesión es de 30min
+					if ((DateTime.Now - session.last_login.GetValueOrDefault()).TotalMinutes > 30)
+					{
+						await _userService.registrarAuditoriaCierreSesion(session.id_auditoria_login, session.UserName, ipAddress, $"La sesión se vence ya que han han pasado más de 30 minutos y no se tenía activiado el RememberMe desde último login {session.last_login.GetValueOrDefault()}");
+						await LimpiarSesion();
+						return;
+					}
+
+					session.Ip = ipAddress;
+					session.last_login = DateTime.Now;
+					await customAuthStateProvider.UpdateAuthenticationState(session);
+
+					CircuitHandlerService handler = (CircuitHandlerService)BlazorCircuitHandler;
+					_circuitUserServer.Connect(handler.CirtuidId, session);
+					usuario = session.UserName;
+
+					await _jsRuntime.InitializeInactivityTimer(DotNetObjectReference.Create(this));
+				}
+			}
+			else
+			{
+				_navigationManager.NavigateTo("/", forceLoad: true);
+			}
+		}
+		catch (Exception exe)
+		{
+			_logger.LogError(exe, $"Error consultar estado de autenticación usuario");
+		}
+	}
+
+	private async Task LimpiarSesion()
+	{
+		try
+		{
+			//Authentication Provider
+			var customAuthStateProvider = (CustomAuthenticationStateProvider)_authStateProvider;
+			await customAuthStateProvider.UpdateAuthenticationState(null);
+			CircuitHandlerService handler = (CircuitHandlerService)BlazorCircuitHandler;
+			_circuitUserServer.Disconnect(handler.CirtuidId);
+		}
+		catch (Exception exe)
+		{
+			_logger.LogError(exe, "Error al limpiar sesión");
+		}
+	}
+
+	private async Task CerrarSesion()
+	{
+		try
+		{
+			var ipAddress = await _jsRuntime.GetIpAddress();
+			await _userService.registrarAuditoriaCierreSesion(session.id_auditoria_login, session.UserName, ipAddress, $"Cierre de sesión manual");
+			await LimpiarSesion();
+			_navigationManager.NavigateTo("/", forceLoad: true);
+		}
+		catch (Exception exe)
+		{
+			_logger.LogError(exe, "Error al cerrar sesión");
+		}
+	}
+
+	[JSInvokable]
+	public async Task Logout()
+	{
+		var authState = await _authStateProvider.GetAuthenticationStateAsync();
+
+		var user = authState.User;
+
+		if (user.Identity.IsAuthenticated)
+		{
+			var ipAddress = await _jsRuntime.GetIpAddress();
+			await _userService.registrarAuditoriaCierreSesion(session.id_auditoria_login, session.UserName, ipAddress, $"Cierre de la sesión por inactividad");
+			await LimpiarSesion();
+
+			_navigationManager.NavigateTo("/", forceLoad: true);
+			await _jsRuntime.InvokeVoidAsync("warningToastr", "Tu sesión ha sido cerrada debido a inactividad");
+		}
+	}
+
+	[JSInvokable]
+	public async Task AlertaLogout()
+	{
+		var authState = await _authStateProvider.GetAuthenticationStateAsync();
+
+		var user = authState.User;
+
+		if (user.Identity.IsAuthenticated)
+		{
+			await _jsRuntime.InvokeVoidAsync("warningToastr", "Tu sesión caducará en 3 minutos por inactividad");
+		}
+	}
+
+	[JSInvokable]
+	public async Task<string> GetActualUserName()
+	{
+		var authState = await _authStateProvider.GetAuthenticationStateAsync();
+
+		var user = authState.User;
+
+		if (user.Identity.IsAuthenticated)
+		{
+			return session.UserName;
+		}
+
+		return "";
+	}
+}
+
+
+
+
+
+
+
+

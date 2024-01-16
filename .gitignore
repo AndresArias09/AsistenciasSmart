@@ -397,6 +397,6 @@ FodyWeavers.xsd
 *.sln.iml
 
 
-App/FirmaDigitalSMART.Web/ArchivosCargueMasivo
-App/FirmaDigitalSMART.Web/wwwroot/Temporales/
-App/FirmaDigitalSMART.Web/wwwroot/archivosTemporales/
+App/RegistroAsistenciasSMART.Web/ArchivosCargueMasivo
+App/RegistroAsistenciasSMART.Web/wwwroot/Temporales/
+App/RegistroAsistenciasSMART.Web/wwwroot/archivosTemporales/
