@@ -1,0 +1,18 @@
+﻿:root {
+    --rz-secondary: #c43030 !important;
+    --rz-secondary-light: #e49292 !important;
+    --rz-secondary-dark: #892222 !important;
+}
+
+th {
+    color: white !important;
+    background: var(--rz-secondary) !important;
+}
+
+th span {
+    color: white !important;
+}
+
+th div span {
+    color: white !important;
+}

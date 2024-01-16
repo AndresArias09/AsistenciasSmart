@@ -1,0 +1,50 @@
+﻿
+@inject ILogger<NavMenu> _logger
+
+
+@code {
+
+
+	private bool _isLoading = true;
+
+
+	protected async override Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			_isLoading = true;
+			StateHasChanged();
+
+
+
+			_isLoading = false;
+			StateHasChanged();
+
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/demo_configurator.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/js/bootstrap/bootstrap.bundle.min.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/js/vendor/visualization/d3/d3.min.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/js/vendor/visualization/d3/d3_tooltip.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/js/vendor/visualization/d3/d3_tooltip.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/js/app.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/streamgraph.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/sparklines.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/lines.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/areas.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/donuts.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/bars.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/progress.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/progress.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/heatmaps.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/pies.js");
+			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/bullets.js");
+
+			//Loader
+			await _jsRuntime.InvokeVoidAsync("agregarClase", ".loaderOverlay", "inactive");
+
+		}
+
+
+	}
+
+
+}

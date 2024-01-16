@@ -1,0 +1,32 @@
+﻿@using System.Net.Http
+@using FirmaDigitalSMART.Services.Interfaces.Auditoria
+@using FirmaDigitalSMART.Services.Interfaces.Utilidades
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.JSInterop
+@using FirmaDigitalSMART.Web
+@using FirmaDigitalSMART.Web.Shared
+@using FirmaDigitalSMART.Web.Helpers
+@using FirmaDigitalSMART.Model.Response
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using static FirmaDigitalSMART.Web.Helpers.IJSRuntimeExtension
+@using Radzen
+@using Radzen.Blazor
+@using FirmaDigitalSMART.Web.Utilidades
+@using FirmaDigitalSMART.Web.Authentication
+@using System.Security.Claims
+@using FirmaDigitalSMART.Web.Authorization;
+
+
+@inject IJSRuntime _jsRuntime
+@inject NavigationManager _navigationManager
+@inject AuthenticationStateProvider _authStateProvider
+@inject IWebHostEnvironment env
+@inject IAuditoriaService _auditoriaService
+@inject IConfiguration _config
+@inject IEncryptService _encryptService
+

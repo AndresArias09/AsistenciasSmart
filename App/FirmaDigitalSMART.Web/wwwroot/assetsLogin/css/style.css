@@ -1,0 +1,192 @@
+@import url("https://fonts.googleapis.com/css?family=Poppins:400,500,600");
+
+body {
+    margin: 0;
+    padding: 0;
+    background: url(https://i.ibb.co/7R08tt7/Frame-13-14.png) no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Poppins', sans-serif !important;
+    color: #ffffff !important;
+    height: 100% !important;
+}
+
+    body.swal2-height-auto {
+        height: 100% !important;
+    }
+
+html {
+    height: 100% !important;
+}
+
+.form-control {
+    height: auto !important;
+}
+
+#cedula {
+    width: 100%;
+}
+
+.container-flex {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.row {
+    margin: 0px auto;
+    width: 100% !important;
+}
+
+#Imagenlogin {
+    width: 100%;
+}
+
+.Imagen {
+    width: 100%;
+}
+
+html {
+    height: 100% !important;
+}
+
+.row h2 {
+    color: #ffffff !important;
+}
+
+.contenedor {
+    position: relative;
+    height: 100%;
+}
+
+
+#smart {
+    max-width: 50%;
+}
+
+
+
+#elTitulo {
+    font-size: 2em;
+    font-family: 'Poppins',sans-serif;
+    font-weight: 600;
+    color: #ffffff;
+    text-align: left;
+}
+
+#elTitulo2 {
+    font-size: 1em;
+    font-family: 'Poppins',sans-serif;
+    font-weight: 300;
+    color: #ffffff;
+    margin-top: 0%;
+    margin-bottom: 2%;
+}
+
+#formulario {
+    color: #fff;
+    font-weight: 600;
+}
+
+#boton {
+    width: 50%;
+    height: 50px;
+    padding: 0px;
+    background-color: #ffffff;
+    color: #c91212;
+    border-color: #ffffff;
+    font-size: 1em;
+    font-family: 'Poppins',sans-serif;
+    font-weight: 500;
+    border-radius: 30px;
+    cursor: pointer;
+}
+
+.website {
+    width: 80%;
+    padding: auto;
+    border-radius: 24px;
+    margin: 0px auto !important;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#cedula {
+    padding: 12px;
+    font-size: 1em;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 300;
+    border: 0px solid #ccc;
+    border-radius: 30px;
+    background-color: #f5f5f523;
+    color: #ffffff;
+    outline: none;
+}
+
+    #cedula::placeholder {
+        color: #ffffff;
+    }
+
+    #cedula:valid {
+        color: #ffffff;
+    }
+
+#emogi, #contenido {
+    margin-top: -46%;
+    margin-left: 30%;
+}
+
+.version {
+    font-size: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+}
+
+body {
+    background-color: #ffffff;
+    background-size: cover;
+}
+
+label.form-label {
+    font-family: 'Poppins', sans-serif;
+    border-width: 10px;
+}
+
+.row {
+    padding-left: 6rem !important;
+    padding-right: 6rem !important;
+}
+
+
+.col-imagen {
+    text-align: center;
+    position: relative;
+}
+
+.Imagen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@media only screen and (max-width: 1039px) {
+    .row {
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+    }
+
+    .col-imagen {
+        display: none;
+        width: inherit;
+    }
+
+    .col-main {
+        width: 100% !important;
+    }
+
+    #cedula {
+        width: 100%;
+    }
+}
