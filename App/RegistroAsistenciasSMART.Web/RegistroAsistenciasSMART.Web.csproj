@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Pages\Presentacion\**" />
+    <Content Remove="Pages\Presentacion\**" />
+    <EmbeddedResource Remove="Pages\Presentacion\**" />
+    <None Remove="Pages\Presentacion\**" />
+  </ItemGroup>
+
+  <ItemGroup>
 
     <None Include="wwwroot\assetsLogin\.well-known\acme-challenge\configcheck" />
     <None Include="wwwroot\assetsLogin\.well-known\acme-challenge\web.config" />
@@ -42,10 +49,6 @@
     <None Update="Sello\Sello.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Pages\Presentacion\" />
   </ItemGroup>
 
 </Project>

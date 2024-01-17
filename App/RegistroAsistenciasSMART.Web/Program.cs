@@ -107,7 +107,7 @@ try
     // Configure the HTTP request pipeline.
     if (!app.Environment.IsDevelopment())
     {
-        app.UseResponseCompression();
+        //app.UseResponseCompression();
         app.UseExceptionHandler("/Error");
         app.UseHsts();
     }

@@ -440,3 +440,7 @@ function numberOnly(id) {
     var element = document.getElementById(id);
     element.value = element.value.replace(/[^0-9]/gi, "");
 }
+
+function replaceURL(newUrl) {
+    window.history.replaceState({}, '', newUrl);
+}

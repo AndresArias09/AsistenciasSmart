@@ -1,0 +1,134 @@
+﻿@layout RegistroLayout
+
+@page "/Registro/{sede}"
+
+@if (_isLoading)
+{
+    <_Loading></_Loading>
+}
+else
+{
+    <div class="background">
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="website">
+        <section>
+            <div class="head" id="headSmart">
+                <img id="smart" src="https://i.ibb.co/2cG4fmm/Group-398.png" alt="Logo de Smart Academia">
+            </div>
+        </section>
+
+        <section>
+            <div id="titulo">
+                <h2 id="elTitulo">Bienvenid@@</h2>
+            </div>
+        </section>
+
+        <section>
+            <div id="titulo">
+                <h2 id="elTitulo2">
+                    Registra tu asistencia diligenciando
+                    los siguientes datos
+                </h2>
+            </div>
+        </section>
+
+        <section>
+            <div class="container" id="formulario">
+
+                <div id="formularioRegistro" name="formularioRegistro" class="needs-validation">
+                    <div class="mb-3">
+                        <label for="cedula" class="form-label">Documento</label>
+                        <input type="text" name="cedula" id="cedula" class="form-control" placeholder="Ingresa tu número de documento">
+                    </div>
+
+                    <div class="row">
+                        <div class="mb-3">
+                            <label for="reporta" class="form-label"> ¿Qué reportas? </label>
+                            <select class="form-select" id="reporta" name="reporta">
+                                <option value="Entrada">Entrada</option>
+                                <option value="Salida">Salida</option>
+                                <option value="Traslado Salida">Traslado Salida</option>
+                                <option value="Traslado Entrada">Traslado Entrada</option>
+                            </select>
+                        </div>
+
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="sede" class="form-label"> ¿En qué sede? </label>
+                                <input type="text" id="sede" class="form-control" name="sede" value="@sede" readonly="readonly">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="boton" class="mb-4 mt-4">
+                        <button id="boton" type="button"> Enviar registro </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+}
+
+
+
+@code {
+    [Parameter]
+    public string sede { get; set; }
+
+    private bool _isLoading = true;
+
+    private IEnumerable<string> tipo_reporte = new List<string>()
+    {
+        "Entrada",
+        "Salida",
+        "Traslado Salida",
+        "Traslado Entrada"
+    };
+
+    private IEnumerable<string> allowed_ip_address = new List<string>()
+    {
+        "190.217.98.138",
+        "190.109.12.180",
+        "150.136.88.133",
+        "201.185.108.137",
+        "::1"
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                await _jsRuntime.InvokeVoidAsync("replaceURL", "Registro");
+
+                if (string.IsNullOrEmpty(sede))
+                {
+                    await _jsRuntime.SweetAlertConfirmSuccess("Error", "URL no válida", TipoMensajeSweetAlert.error);
+                    _navigationManager.NavigateTo("https://google.com");
+                    return;
+                }
+
+                string ip_address = await _jsRuntime.GetIpAddress();
+
+                if (!allowed_ip_address.Contains(ip_address))
+                {
+                    await _jsRuntime.SweetAlertConfirmSuccess("Error", "Acceso no autorizado, no te encuentras dentro de la red SMART.", TipoMensajeSweetAlert.error);
+                    _navigationManager.NavigateTo("https://google.com");
+                    return;
+                }
+
+                _isLoading = false;
+                StateHasChanged();
+            }
+        }
+        catch(Exception exe)
+        {
+            
+        }
+    }
+}
