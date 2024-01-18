@@ -48,7 +48,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             SqlConfiguration sqlConfiguration,
             ILogger<ColaboradorService> logger,
             IConfiguration config,
-            IUserService _userService
+            IUserService userService
         )
         {
             _sqlConfiguration = sqlConfiguration;
@@ -57,6 +57,8 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             _colaboradorRepository = new ColaboradorRepository(my_sql_connection);
             _logger = logger;
+
+            _userService = userService;
         }
         public ResponseDTO validarColaborador(Colaborador colaborador)
         {
