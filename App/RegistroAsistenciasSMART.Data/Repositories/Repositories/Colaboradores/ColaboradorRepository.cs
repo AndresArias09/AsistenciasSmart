@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RegistroAsistenciasSMART.Model.Models.Colaboradores;
 
 namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
 {
@@ -166,6 +167,73 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
             var result = await db.ExecuteAsync(sql, p);
 
             return result > 0;
+        }
+
+        public async Task<bool> insertarRegistroAsistencia(RegistroAsistencia registro)
+        {
+            var db = dbConnection();
+
+            var sql = @"INSERT INTO registro 
+                        (
+                            fecha,
+                            hora,
+                            Cedula,
+                            Sede,
+                            Reporta,
+                            Correo,
+                            latitud, 
+                            longitud,
+                            ip_address
+                        )
+                        VALUES 
+                        (
+                            @fecha,
+                            @hora,
+                            @cedula,
+                            @sede,
+                            @reporta,
+                            @email,
+                            @latitud,
+                            @longitud,
+                            @ip_address
+                        )";
+
+            DynamicParameters p = new DynamicParameters();
+            p.Add("@fecha", registro.fecha);
+            p.Add("@hora", registro.hora);
+            p.Add("@cedula", registro.cedula);
+            p.Add("@sede", registro.sede);
+            p.Add("@reporta", registro.reporta);
+            p.Add("@email", registro.email);
+            p.Add("@latitud", registro.latitud);
+            p.Add("@longitud", registro.longitud);
+            p.Add("@ip_address", registro.ip_address);
+
+            var result = await db.ExecuteAsync(sql, p);
+
+            return result > 0;
+        }
+
+        public async Task<IEnumerable<RegistroAsistencia>> consultarRegistrosAsistencia()
+        {
+            var db = dbConnection();
+
+            var sql = @"
+                        SELECT 
+                            fecha,
+                            hora,
+                            Cedula,
+                            Sede,
+                            Reporta,
+                            Correo as email,
+                            latitud,
+                            longitud,
+                            fecha_SQL as fecha_adicion,
+                            ip_address
+                        FROM asistencia.registro
+                        ";
+
+            return await db.QueryAsync<RegistroAsistencia>(sql);
         }
     }
 }

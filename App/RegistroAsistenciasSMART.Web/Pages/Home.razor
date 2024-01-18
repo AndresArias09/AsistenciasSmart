@@ -1,5 +1,4 @@
-﻿@page "/"
-@page "/Home"
+﻿@page "/Home"
 
 @using AppDemoBlazor.Model.Models.CargueMasivo
 @using RegistroAsistenciasSMART.Data.Repositories.Interfaces.Colaboradores
@@ -37,8 +36,10 @@ else
 			</div>
 
 			<div class="card-body">
+                
                 <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Agregar nuevo colaborador" Click="@InsertRow" Disabled=@(colaboradorToInsert != null || colaboradorToUpdate != null) />
                 <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="add_circle_outline" class="mt-2 mb-4" Text="Cargar colaboradores masivamente" Click=@(() => _modalCargueMasivo.abrirModal()) />
+                <button type="button" class="btn btn-primary" @onclick="LoadData" style="float: right">Actualizar</button>
                 <RadzenDataGridApp AllowVirtualization="true" @ref="colaboradoresGrid" LogicalFilterOperator="LogicalFilterOperator.Or" AllowPaging="true"
                                    AllowFiltering="true" PageSize="10" AllowColumnResize="true" AllowSorting="true" Data="@colaboradores_temp" TItem="Colaborador"
                                    IsLoading="@_isLoading"
@@ -175,7 +176,7 @@ else
                      width="1000">
         <CuerpoModal>
             <div class="row">
-                <div class="col-xl-3 col-sm-6">
+                <div class="col-xl-6 col-sm-6">
                     <div class="card mini-stat bg-primary">
                         <div class="card-body mini-stat-img">
                             <div class="mini-stat-icon">
@@ -188,7 +189,7 @@ else
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6">
+                <div class="col-xl-6 col-sm-6">
                     <div class="card mini-stat bg-primary">
                         <div class="card-body mini-stat-img">
                             <div class="mini-stat-icon">
@@ -201,7 +202,21 @@ else
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6">
+                <div class="col-xl-6 col-sm-6">
+                    <div class="card mini-stat bg-primary">
+                        <div class="card-body mini-stat-img">
+                            <div class="mini-stat-icon">
+                                <i class="mdi mdi-tag-text-outline float-end"></i>
+                            </div>
+                            <div class="text-white">
+                                <h6 class="text-uppercase mb-3 font-size-16 text-white">REGISTROS NO CARGADOS</h6>
+                                <h2 class="mb-4 text-white">@datos_cargue_masivo.total_registros_no_procesados</h2>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-6 col-sm-6">
                     <div class="card mini-stat bg-primary">
                         <div class="card-body mini-stat-img">
                             <div class="mini-stat-icon">
@@ -209,20 +224,20 @@ else
                             </div>
                             <div class="text-white">
                                 <h6 class="text-uppercase mb-3 font-size-16 text-white">REGISTROS FALTANTES</h6>
-                                <h2 class="mb-4 text-white">@datos_cargue_masivo.total_registros_no_procesados</h2>
+                                <h2 class="mb-4 text-white">@datos_cargue_masivo.total_faltantes</h2>
 
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6">
+                <div class="col-xl-12 col-sm-6">
                     <div class="card mini-stat bg-primary">
                         <div class="card-body mini-stat-img">
                             <div class="mini-stat-icon">
                                 <i class="mdi mdi-briefcase-check float-end"></i>
                             </div>
                             <div class="text-white">
-                                <h6 class="text-uppercase mb-3 font-size-16 text-white">ESTADO</h6>
+                                <h6 class="text-uppercase mb-3 font-size-16 text-white">ESTADO DEL CARGUE</h6>
                                 <h2 class="mb-4 text-white">@datos_cargue_masivo.estado</h2>
 
                             </div>
@@ -281,50 +296,8 @@ else
     //Progress
     private CargueMasivoDTO datos_cargue_masivo = new CargueMasivoDTO();
 
-    private void OnInputFileChange(InputFileChangeEventArgs e)
-    {
-        selectedFiles = e.GetMultipleFiles();
-        StateHasChanged();
-    }
-
-    private async Task CargueMasivoColaboradores()
-    {
-        if (selectedFiles == null)
-        {
-            await _jsRuntime.SweetAlertUsual("Error", "Debe seleccionar un archivo", TipoMensajeSweetAlert.error);
-            return;
-        }
-
-        await _jsRuntime.SweetAlertLoading("Procesando", "Procesando solicitud");
-
-        IEnumerable<Archivo> archivos = await FileHelper.getTempFiles(selectedFiles);
-
-        Archivo archivo_cargue = archivos.FirstOrDefault();
-
-        Progress<CargueMasivoDTO> progress = new Progress<CargueMasivoDTO>();
-        progress.ProgressChanged += ReportProgress;
-
-        ResponseDTO respuesta = await _colaboradorService.cargueMasivoColaboradores(archivo_cargue, progress);
-
-        if (respuesta.estado.Equals("ERROR"))
-        {
-            await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
-            return;
-        }
-
-        await _jsRuntime.InvokeVoidAsync("Swal.close");
-
-        await _modalCargueMasivo.cerrarModal();
-
-        await _modalCargueMasivoProgress.abrirModal();
-
-    }
-
-    private async void ReportProgress(object sender, CargueMasivoDTO e)
-    {
-        this.datos_cargue_masivo = e;
-        StateHasChanged();
-    }
+    [CascadingParameter]
+    protected UserSession? userSession { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -351,6 +324,8 @@ else
         colaboradores_temp = colaboradores;
         jefes = colaboradores.DistinctBy(c => c.jefe_inmediato).Select(c => c.jefe_inmediato);
         sedes = colaboradores.DistinctBy(c => c.sede).Select(c => c.sede);
+
+        await Filtrar();
 
         _isLoading = false;
         StateHasChanged();
@@ -400,6 +375,11 @@ else
             {
                 if(await _colaboradorService.eliminarColaborador(colaborador.cedula))
                 {
+                    List<Colaborador> colaboradores_temp = this.colaboradores.ToList();
+                    colaboradores_temp.Remove(colaborador);
+                    this.colaboradores = colaboradores_temp;
+                    await Filtrar();
+
                     await _jsRuntime.InvokeVoidAsync("successToastr", "Colaborador eliminado correctamente");
                 }
                 else
@@ -439,7 +419,7 @@ else
 
             colaboradorToUpdate = null;
 
-            colaborador.usuario_adiciono = "Administrador";
+            colaborador.usuario_adiciono = userSession.UserName;
 
             ResponseDTO respuesta = await _colaboradorService.actualizarInfoColaborador(colaborador);
 
@@ -523,5 +503,50 @@ else
             _logger.LogError(exe, "Error al insertar colaborador");
             await _jsRuntime.SweetAlertUsual("Error", "Error al realizar esta operación", TipoMensajeSweetAlert.error);
         }
+    }
+
+    private void OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        selectedFiles = e.GetMultipleFiles();
+        StateHasChanged();
+    }
+
+    private async Task CargueMasivoColaboradores()
+    {
+        if (selectedFiles == null)
+        {
+            await _jsRuntime.SweetAlertUsual("Error", "Debe seleccionar un archivo", TipoMensajeSweetAlert.error);
+            return;
+        }
+
+        await _jsRuntime.SweetAlertLoading("Procesando", "Procesando solicitud");
+
+        IEnumerable<Archivo> archivos = await FileHelper.getTempFiles(selectedFiles);
+
+        Archivo archivo_cargue = archivos.FirstOrDefault();
+
+        Progress<CargueMasivoDTO> progress = new Progress<CargueMasivoDTO>();
+        progress.ProgressChanged += ReportProgress;
+
+        ResponseDTO respuesta = await _colaboradorService.cargueMasivoColaboradores(archivo_cargue, progress,userSession.UserName);
+
+        if (respuesta.estado.Equals("ERROR"))
+        {
+            await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
+            return;
+        }
+
+        await _jsRuntime.InvokeVoidAsync("Swal.close");
+
+        await _modalCargueMasivo.cerrarModal();
+
+        await _modalCargueMasivoProgress.abrirModal();
+
+    }
+
+    private async void ReportProgress(object sender, CargueMasivoDTO e)
+    {
+        this.datos_cargue_masivo = e;
+        StateHasChanged();
     }
 }

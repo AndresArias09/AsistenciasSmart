@@ -290,11 +290,55 @@ function validarPorc(input) {
 }
 
 window.getIpAddress = () => {
-    return fetch('/api/info/ipaddress')
-        .then((response) => response.text())
-        .then((data) => {
-            return data
-        })
+    return new Promise((resolve, reject) => {
+        $.getJSON('https://api.ipify.org?format=jsonp&callback=?', function (data) {
+            resolve(data.ip);
+        });
+    });
+    
+}
+
+function getPosition() {
+    return new Promise((resolve, reject) => {
+        var jsonData = [];
+
+        var permitida = false;
+        var latitud = "";
+        var longitud = "";
+        navigator.geolocation.getCurrentPosition(function (posicion) {
+            latitud = posicion.coords.latitude;
+            longitud = posicion.coords.longitude;
+            permitida = true;
+
+            jsonData.push({
+                permitida: permitida,
+                latitud: latitud,
+                longitud: longitud
+            });
+
+            var jsonString = JSON.stringify(jsonData, null, 2);
+            console.log(jsonString);
+            resolve(jsonString);
+        },
+            function (error) {
+                console.log(error);
+                if (error.code == error.PERMISSION_DENIED) {
+                    
+                }
+                permitida = false;
+                jsonData.push({
+                    permitida: permitida,
+                    latitud: latitud,
+                    longitud: longitud
+                });
+
+                var jsonString = JSON.stringify(jsonData, null, 2);
+                console.log(jsonString);
+                resolve(jsonString);
+            }
+        );
+    });
+    
 }
 
 function successToastr(mensaje) {

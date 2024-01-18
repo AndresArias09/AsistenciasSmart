@@ -16,6 +16,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RegistroAsistenciasSMART.Model.Models.Colaboradores;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Configuration;
 
 namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 {
@@ -26,10 +29,30 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
         private ILogger<ColaboradorService> _logger;
 
-        public ColaboradorService(SqlConfiguration sqlConfiguration, ILogger<ColaboradorService> logger)
+        private IEnumerable<string> tipo_reporte = new List<string>()
+        {
+            "Entrada",
+            "Salida",
+            "Traslado Salida",
+            "Traslado Entrada"
+        };
+
+        private IEnumerable<string> allowed_ip_address = new List<string>()
+        {
+            "190.217.98.138",
+            "190.109.12.180",
+            "150.136.88.133",
+            "201.185.108.137",
+            "::1"
+        };
+
+        public ColaboradorService(SqlConfiguration sqlConfiguration, ILogger<ColaboradorService> logger, IConfiguration config)
         {
             _sqlConfiguration = sqlConfiguration;
-            _colaboradorRepository = new ColaboradorRepository(_sqlConfiguration.ConnectionString);
+
+            string my_sql_connection = config.GetConnectionString("MySqlConnection");
+
+            _colaboradorRepository = new ColaboradorRepository(my_sql_connection);
             _logger = logger;
         }
         public ResponseDTO validarColaborador(Colaborador colaborador)
@@ -136,7 +159,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             }
         }
 
-        public async Task<ResponseDTO> cargueMasivoColaboradores(Archivo archivo_cargue, IProgress<CargueMasivoDTO> progress)
+        public async Task<ResponseDTO> cargueMasivoColaboradores(Archivo archivo_cargue, IProgress<CargueMasivoDTO> progress, string usuario_accion)
         {
             string rutaArchivo = "";
 
@@ -162,12 +185,12 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             string total_registros = UtilidadesExcel.totalRegistros(rutaArchivo, 0);
 
-            ejecutarCargueMasivo(rutaArchivo, progress, total_registros);
+            ejecutarCargueMasivo(rutaArchivo, progress, total_registros, usuario_accion);
 
             return new ResponseDTO() { estado = "OK", descripcion = "" };
         }
 
-        private async Task ejecutarCargueMasivo(string rutaArchivoCargue, IProgress<CargueMasivoDTO> progress, string total_registros)
+        private async Task ejecutarCargueMasivo(string rutaArchivoCargue, IProgress<CargueMasivoDTO> progress, string total_registros, string usuario)
         {
 
             XSSFWorkbook LibroExcel = new XSSFWorkbook(rutaArchivoCargue);
@@ -463,7 +486,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                                     nombres = nombres,
                                     sede = sede,
                                     turno = turno,
-                                    usuario_adiciono = "Administrador"
+                                    usuario_adiciono = usuario
                                 };
 
                                 ResponseDTO respuesta_validacion = validarColaborador(colaborador);
@@ -490,7 +513,8 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                                             estado = "EN CARGUE",
                                             total_registros = Int32.Parse(total_registros),
                                             total_registros_no_procesados = contador_no_cargados,
-                                            total_registros_procesados = contador_cargados
+                                            total_registros_procesados = contador_cargados,
+                                            total_faltantes = (Int32.Parse(total_registros) - contador_cargados - contador_no_cargados)
                                         });
 
                                     }
@@ -533,13 +557,118 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 estado = "FINALIZADO",
                 total_registros = Int32.Parse(total_registros),
                 total_registros_no_procesados = contador_no_cargados,
-                total_registros_procesados = contador_cargados
+                total_registros_procesados = contador_cargados,
+                total_faltantes = (Int32.Parse(total_registros) - contador_cargados - contador_no_cargados)
             });
         }
 
         public async Task<bool> eliminarColaborador(string cedula)
         {
             return await _colaboradorRepository.eliminarColaborador(cedula);
+        }
+
+        private ResponseDTO validarRegistroAsistencia(RegistroAsistencia registro)
+        {
+            if (string.IsNullOrEmpty(registro.cedula))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la cédula para el registro"};
+            }
+
+            if (string.IsNullOrEmpty(registro.fecha))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la fecha para el registro" };
+            }
+
+            if (string.IsNullOrEmpty(registro.hora))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la hora para el registro" };
+            }
+
+            if (string.IsNullOrEmpty(registro.reporta))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el tipo de reporte para el registro" };
+            }
+
+            if (!tipo_reporte.Contains(registro.reporta))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Tipo de registro no válido" };
+            }
+
+            if (string.IsNullOrEmpty(registro.sede))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la sede para el registro" };
+            }
+
+            if (string.IsNullOrEmpty(registro.ip_address))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la dirección IP para el registro" };
+            }
+
+            if (string.IsNullOrEmpty(registro.latitud))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la ubicación para el registro" };
+            }
+
+            if (string.IsNullOrEmpty(registro.longitud))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la ubicación para el registro" };
+            }
+
+            return new ResponseDTO() { estado = "OK"};
+        }
+
+        public async Task<ResponseDTO> insertarRegistroAsistencia(RegistroAsistencia registro)
+        {
+            if (!allowed_ip_address.Contains(registro.ip_address))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "No te encuentras dentro de la red SMART"};
+            }
+
+            DateTime fecha_actual = DateTime.Now;
+
+            registro.fecha = fecha_actual.ToString("yyyy-MM-dd");
+            registro.hora = fecha_actual.ToString("HH:mm:ss");
+
+            ResponseDTO respuesta_validacion = validarRegistroAsistencia(registro);
+
+            if (!respuesta_validacion.estado.Equals("OK"))
+            {
+                return respuesta_validacion;
+            }
+
+            Colaborador colaborador = await _colaboradorRepository.consultarColaboradorByCedula(registro.cedula);
+
+            if(colaborador is null)
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Tu cédula no está registrada como colaborador de SMART"};
+            }
+
+            registro.email = colaborador.correo;
+
+            if( await _colaboradorRepository.insertarRegistroAsistencia(registro))
+            {
+                string saludo = "Bienvenido";
+
+                if (registro.reporta.ToLower().Contains("entrada"))
+                {
+                    saludo = "Bienvenido/a";
+                }
+                else if(registro.reporta.ToLower().Contains("salida"))
+                {
+                    saludo = "Que tengas un buen día";
+                }
+
+                return new ResponseDTO() { estado = "OK", descripcion = $"{saludo}, {colaborador.nombres}"};
+            }
+            else
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "No fue posible guardar la información del registro"};
+            }
+        }
+
+        public async Task<IEnumerable<RegistroAsistencia>> consultarRegistrosAsistencia()
+        {
+            return await _colaboradorRepository.consultarRegistrosAsistencia();
         }
     }
 }

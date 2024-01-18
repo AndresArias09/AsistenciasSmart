@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RegistroAsistenciasSMART.Model.Models.Colaboradores;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,5 +14,7 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Interfaces.Colaboradores
         public Task<bool> eliminarColaborador(string cedula);
         public Task<Colaborador> consultarColaboradorByCedula(string cedula);
         public Task<IEnumerable<Colaborador>> consultarColaboradores();
+        public Task<bool> insertarRegistroAsistencia(RegistroAsistencia registro);
+        public Task<IEnumerable<RegistroAsistencia>> consultarRegistrosAsistencia();
     }
 }

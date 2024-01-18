@@ -14,5 +14,6 @@ namespace AppDemoBlazor.Model.Models.CargueMasivo
         public int total_registros { get; set; } = 0;
         public int total_registros_procesados { get; set; } = 0;
         public int total_registros_no_procesados { get; set; } = 0;
+        public int total_faltantes{ get; set; } = 0;
     }
 }

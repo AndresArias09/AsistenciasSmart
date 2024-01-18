@@ -24,6 +24,10 @@
 	.rz-autocomplete {
 		overflow: unset !important;
 	}
+
+	.swal2-icon.swal2-question {
+		font-size: medium !important;
+	}
 </style>
 
 @if (!_isLoading)
@@ -129,7 +133,7 @@
 		{
 			if (firsRender)
 			{
-				// await ValidarAutenticacionUsuario();
+				await ValidarAutenticacionUsuario();
 
 				_isLoading = false;
 				StateHasChanged();
