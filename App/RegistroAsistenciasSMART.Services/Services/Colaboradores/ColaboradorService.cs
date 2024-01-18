@@ -19,6 +19,10 @@ using System.Threading.Tasks;
 using RegistroAsistenciasSMART.Model.Models.Colaboradores;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using RegistroAsistenciasSMART.Model.DTO.Configuracion.Perfilamiento;
+using RegistroAsistenciasSMART.Model.DTO;
+using RegistroAsistenciasSMART.Services.Interfaces.Configuracion.Perfilamiento;
 
 namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 {
@@ -26,6 +30,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
     {
         private readonly SqlConfiguration _sqlConfiguration;
         private readonly IColaboradorRepository _colaboradorRepository;
+        private readonly IUserService _userService;
 
         private ILogger<ColaboradorService> _logger;
 
@@ -37,16 +42,14 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             "Traslado Entrada"
         };
 
-        private IEnumerable<string> allowed_ip_address = new List<string>()
-        {
-            "190.217.98.138",
-            "190.109.12.180",
-            "150.136.88.133",
-            "201.185.108.137",
-            "::1"
-        };
 
-        public ColaboradorService(SqlConfiguration sqlConfiguration, ILogger<ColaboradorService> logger, IConfiguration config)
+		public ColaboradorService
+        (
+            SqlConfiguration sqlConfiguration,
+            ILogger<ColaboradorService> logger,
+            IConfiguration config,
+            IUserService _userService
+        )
         {
             _sqlConfiguration = sqlConfiguration;
 
@@ -617,9 +620,11 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             return new ResponseDTO() { estado = "OK"};
         }
 
-        public async Task<ResponseDTO> insertarRegistroAsistencia(RegistroAsistencia registro)
+		public async Task<ResponseDTO> insertarRegistroAsistencia(RegistroAsistencia registro)
         {
-            if (!allowed_ip_address.Contains(registro.ip_address))
+            IEnumerable<IpInfo> ips = _userService.consultarIpsAutorizados();
+
+            if (!ips.Any(ip => ip.ip_address.Equals(registro.ip_address)))
             {
                 return new ResponseDTO() { estado = "ERROR", descripcion = "No te encuentras dentro de la red SMART"};
             }

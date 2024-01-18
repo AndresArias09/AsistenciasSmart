@@ -54,7 +54,7 @@ namespace RegistroAsistenciasSMART.Web.Services
         {
             try
             {
-                _logger.LogInformation($"Se procesa conexión {user.UserName}");
+                //_logger.LogInformation($"Se procesa conexión {user.UserName}");
 
                 if (Circuits.ContainsKey(CircuitId))
                     Circuits[CircuitId].usuario = user;
@@ -78,7 +78,7 @@ namespace RegistroAsistenciasSMART.Web.Services
         {
             try
             {
-                _logger.LogInformation($"Se procesa desconexión {CircuitId}");
+                //_logger.LogInformation($"Se procesa desconexión {CircuitId}");
 
                 CircuitUser circuitRemoved;
                 Circuits.TryRemove(CircuitId, out circuitRemoved);

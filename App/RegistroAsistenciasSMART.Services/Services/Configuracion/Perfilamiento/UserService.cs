@@ -15,6 +15,8 @@ using RegistroAsistenciasSMART.Data.Repositories.Interfaces.OTP;
 using RegistroAsistenciasSMART.Data.Repositories.Repositories.OTP;
 using RegistroAsistenciasSMART.Model.DTO;
 using RegistroAsistenciasSMART.Model.Models.Auditoria;
+using Newtonsoft.Json;
+using NPOI.HPSF;
 
 namespace RegistroAsistenciasSMART.Services.Services.Configuracion.Perfilamiento
 {
@@ -50,6 +52,29 @@ namespace RegistroAsistenciasSMART.Services.Services.Configuracion.Perfilamiento
             _logger = logger;
         }
 
+		public IEnumerable<IpInfo> consultarIpsAutorizados()
+		{
+			var ips_json = System.IO.File.ReadAllText("ip_autorizadas.json");
+
+			List<IpInfo> ips = new List<IpInfo>();
+
+			ips = JsonConvert.DeserializeObject<List<IpInfo>>(ips_json) ?? ips;
+
+			return ips;
+		}
+
+
+		public IEnumerable<UserDTO> consultarUsuariosAutorizados()
+        {
+			var usuarios_json = System.IO.File.ReadAllText("usuarios_autorizados.json");
+
+			List<UserDTO> usuarios = new List<UserDTO>();
+
+			usuarios = JsonConvert.DeserializeObject<List<UserDTO>>(usuarios_json) ?? usuarios;
+
+			return usuarios;
+		}
+
         public async Task<ResponseDTO> loginUsuario(UserDTO usuario, string ipAddress)
         {
             try
@@ -57,6 +82,13 @@ namespace RegistroAsistenciasSMART.Services.Services.Configuracion.Perfilamiento
                 if (!usuario.usuario.EndsWith("@smart.edu.co"))
                 {
                     return new ResponseDTO() { estado = "ERROR",descripcion = "Usuario no autorizado"};
+                }
+
+                IEnumerable<UserDTO> usuarios_autorizados = consultarUsuariosAutorizados();
+
+                if(!usuarios_autorizados.Any(u => u.usuario.Equals(usuario.usuario)))
+                {
+                    return new ResponseDTO() { estado = "ERROR", descripcion = "Usuario no autorizado"};
                 }
 
                 Usuario user = await _userRepository.getUsuarioByUser(usuario.usuario);

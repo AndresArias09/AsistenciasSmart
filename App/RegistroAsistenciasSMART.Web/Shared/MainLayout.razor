@@ -1,4 +1,5 @@
 ﻿
+@using RegistroAsistenciasSMART.Model.DTO
 @using RegistroAsistenciasSMART.Model.Models.Configuracion.Perfilamiento
 @using RegistroAsistenciasSMART.Services.Interfaces.Configuracion.Perfilamiento
 @using RegistroAsistenciasSMART.Web.Services
@@ -56,7 +57,7 @@
 			</ul>
 
 			<ul class="nav flex-row justify-content-end order-1 order-lg-2">
-				
+
 
 				<li class="nav-item nav-item-dropdown-lg dropdown ms-lg-2">
 					<a href="javascript:void(0)" class="navbar-nav-link align-items-center rounded-pill p-1" data-bs-toggle="dropdown">
@@ -94,15 +95,15 @@
 						@Body
 					</CascadingValue>
 				</div>
-				
-				
+
+
 
 				<!-- Footer -->
 				<div class="navbar navbar-sm navbar-footer border-top">
 					<div class="container-fluid">
 						<span>&copy; @DateTime.Now.Year SMART</span>
 
-						
+
 					</div>
 				</div>
 				<!-- /footer -->
@@ -115,7 +116,6 @@
 
 	</div>
 	<!-- /page content -->
-
 }
 
 @code {
@@ -133,7 +133,36 @@
 		{
 			if (firsRender)
 			{
+				string ip_address = await _jsRuntime.GetIpAddress();
+
+				IEnumerable<IpInfo> ips = _userService.consultarIpsAutorizados();
+
+				if(!ips.Any(ip => ip.ip_address.Equals(ip_address)))
+				{
+					await _jsRuntime.SweetAlertUsual("Error", "No estás dentro de la red SMART",TipoMensajeSweetAlert.error);
+					_navigationManager.NavigateTo("https://google.com");
+					return;
+				}
+
 				await ValidarAutenticacionUsuario();
+
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/demo_configurator.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/js/bootstrap/bootstrap.bundle.min.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/js/vendor/visualization/d3/d3.min.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/js/vendor/visualization/d3/d3_tooltip.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/js/vendor/visualization/d3/d3_tooltip.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/js/app.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/streamgraph.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/sparklines.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/lines.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/areas.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/donuts.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/bars.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/progress.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/progress.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/heatmaps.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/pies.js");
+				await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/bullets.js");
 
 				_isLoading = false;
 				StateHasChanged();

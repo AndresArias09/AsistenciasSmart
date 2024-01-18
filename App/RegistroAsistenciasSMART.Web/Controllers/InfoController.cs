@@ -94,7 +94,7 @@ namespace RegistroAsistenciasSMART.Web.Controllers
                     ubicacion = ubicacion
                 };
 
-                //await _auditoriaService.registrarAuditoriaNavegacion(auditoria);
+                await _auditoriaService.registrarAuditoriaNavegacion(auditoria);
             }
             catch (Exception exe)
             {

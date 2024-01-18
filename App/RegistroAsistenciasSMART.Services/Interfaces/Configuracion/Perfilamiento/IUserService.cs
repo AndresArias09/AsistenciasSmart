@@ -19,5 +19,8 @@ namespace RegistroAsistenciasSMART.Services.Interfaces.Configuracion.Perfilamien
         public Task<ResponseDTO> enviarCodigoOTPLogin(string nombre_usuario, string ipAccion);
         public Task<ResponseDTO> validarCodigoOTP(OTP_DTO otp_code, string nombre_usuario, string ipAccion);
         public Task procesarIngreso(string usuario, string ip_address, string descripcion);
-    }
+        public IEnumerable<UserDTO> consultarUsuariosAutorizados();
+        public IEnumerable<IpInfo> consultarIpsAutorizados();
+
+	}
 }

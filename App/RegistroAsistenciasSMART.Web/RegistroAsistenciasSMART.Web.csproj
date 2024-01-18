@@ -40,6 +40,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="ip_autorizadas.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="usuarios_autorizados.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="RSAKeys\private_key.pem">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
