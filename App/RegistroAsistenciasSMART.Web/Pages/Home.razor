@@ -8,268 +8,263 @@
 @inject IColaboradorService _colaboradorService
 @inject ILogger<Home> _logger
 
-@if (_isLoading)
-{
-	<_Loading></_Loading>
-}
-else
-{
-	<div class="row">
-		<div class="card">
-			<div class="card-header">
-				<h6 class="mb-0">Filtros</h6>
-			</div>
+<div class="row">
+    <div class="card">
+        <div class="card-header">
+            <h6 class="mb-0">Filtros</h6>
+        </div>
 
-			<div class="card-body">
-				<div class="col-md-12">
-					<input class="form-control" type="text" @bind="filtro" placeholder="Filtra por nombres, apellidos, correo..." @bind:event="onchange" @bind:after="Filtrar" />
-				</div>
-			</div>
-		</div>
+        <div class="card-body">
+            <div class="col-md-12">
+                <input class="form-control" type="text" @bind="filtro" placeholder="Filtra por nombres, apellidos, correo..." @bind:event="onchange" @bind:after="Filtrar" />
+            </div>
+        </div>
+    </div>
 
-	</div>
+</div>
 
-	<div class="row">
-		<div class="card">
-			<div class="card-header">
-				<h6 class="mb-0">Colaboradores</h6>
-			</div>
+<div class="row">
+    <div class="card">
+        <div class="card-header">
+            <h6 class="mb-0">Colaboradores</h6>
+        </div>
 
-			<div class="card-body">
-                
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Agregar nuevo colaborador" Click="@InsertRow" Disabled=@(colaboradorToInsert != null || colaboradorToUpdate != null) />
-                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="add_circle_outline" class="mt-2 mb-4" Text="Cargar colaboradores masivamente" Click=@(() => _modalCargueMasivo.abrirModal()) />
-                <button type="button" class="btn btn-primary" @onclick="LoadData" style="float: right">Actualizar</button>
-                <RadzenDataGridApp AllowVirtualization="true" @ref="colaboradoresGrid" LogicalFilterOperator="LogicalFilterOperator.Or" AllowPaging="true"
-                                   AllowFiltering="true" PageSize="10" AllowColumnResize="true" AllowSorting="true" Data="@colaboradores_temp" TItem="Colaborador"
-                                   IsLoading="@_isLoading"
-                                   EditMode="DataGridEditMode.Single"
-                                   RowUpdate="@OnUpdateRow"
-                                   RowCreate="@OnCreateRow"
-                                   Sort="@Reset"
-                                   Page="@Reset"
-                                   Filter="@Reset"
-                                   ColumnWidth="200px">
-                    <Columns>
-                        <RadzenDataGridColumn TItem="Colaborador" Frozen="true" Context="Colaborador" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="156px">
-                            <Template Context="colaborador">
-                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(colaborador))" @onclick:stopPropagation="true">
-                                </RadzenButton>
-                                <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="delete" Class="m-1" Click=@(() => EliminarColaborador(colaborador)) Text="" />
-                            </Template>
-                            <EditTemplate Context="colaborador">
-                                <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(colaborador))">
-                                </RadzenButton>
-                                <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(colaborador))">
-                                </RadzenButton>
-                                <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="delete" Class="m-1" Click=@(() => EliminarColaborador(colaborador)) Text="" />
-                            </EditTemplate>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Colaborador" Property="fecha_adicion" Title="Fecha de Adición">
-                            <EditTemplate Context="colaborador">
-                                <div style="text-align:center">
-                                    @("-")
-                                </div>
-                            </EditTemplate>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Colaborador" Frozen="true" Property="cedula" Title="Cédula">
-                            <EditTemplate Context="colaborador">
-                                @if (colaboradorToUpdate is null)
-                                {
-                                    <input type="text" class="form-control" @bind-value="colaborador.cedula" />
-                                }
-                                else
-                                {
-                                    @colaborador.cedula
-                                }
-                            </EditTemplate>
-                            <Template Context="colaborador">
+        <div class="card-body">
+
+            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Agregar nuevo colaborador" Click="@InsertRow" Disabled=@(colaboradorToInsert != null || colaboradorToUpdate != null) />
+            <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="add_circle_outline" class="mt-2 mb-4" Text="Cargar colaboradores masivamente" Click=@(() => _modalCargueMasivo.abrirModal()) />
+            <button type="button" class="btn btn-primary" @onclick="LoadData" style="float: right">Actualizar</button>
+            <RadzenDataGridApp 
+                @ref="colaboradoresGrid"
+                LogicalFilterOperator="LogicalFilterOperator.Or"
+                Data="@colaboradores_temp"
+                TItem="Colaborador"
+                IsLoading="@_isLoading"
+                EditMode="DataGridEditMode.Single"
+                RowUpdate="@OnUpdateRow"
+                RowCreate="@OnCreateRow"
+                Sort="@Reset"
+                Page="@Reset"
+                Filter="@Reset">
+                <Columns>
+                    <RadzenDataGridColumn TItem="Colaborador" Frozen="true" Context="Colaborador" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="156px">
+                        <Template Context="colaborador">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(colaborador))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="delete" Class="m-1" Click=@(() => EliminarColaborador(colaborador)) Text="" />
+                        </Template>
+                        <EditTemplate Context="colaborador">
+                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(colaborador))">
+                            </RadzenButton>
+                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(colaborador))">
+                            </RadzenButton>
+                            <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="delete" Class="m-1" Click=@(() => EliminarColaborador(colaborador)) Text="" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="fecha_adicion" Title="Fecha de Adición">
+                        <EditTemplate Context="colaborador">
+                            <div style="text-align:center">
+                                @("-")
+                            </div>
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Frozen="true" Property="cedula" Title="Cédula">
+                        <EditTemplate Context="colaborador">
+                            @if (colaboradorToUpdate is null)
+                            {
+                                <input type="text" class="form-control" @bind-value="colaborador.cedula" />
+                            }
+                            else
+                            {
                                 @colaborador.cedula
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Colaborador" Property="nombres" Title="Nombres">
-                            <EditTemplate Context="colaborador">
-                                <input type="text" class="form-control" @bind-value="colaborador.nombres" />
-                            </EditTemplate>
-                            <Template Context="colaborador">
-                                @colaborador.nombres
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Colaborador" Property="cargo" Title="Cargo">
-                            <EditTemplate Context="colaborador">
-                                <input type="text" class="form-control" @bind-value="colaborador.cargo" />
-                            </EditTemplate>
-                            <Template Context="colaborador">
-                                @colaborador.cargo
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Colaborador" Property="area" Title="Área">
-                            <EditTemplate Context="colaborador">
-                                <input type="text" class="form-control" @bind-value="colaborador.area" />
-                            </EditTemplate>
-                            <Template Context="colaborador">
-                                @colaborador.area
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Colaborador" Property="jefe_inmediato" Title="Jefe Inmediato">
-                            <EditTemplate Context="colaborador">
-                                <RadzenAutoComplete @bind-Value=@colaborador.jefe_inmediato FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@jefes>
-                                </RadzenAutoComplete>
-                            </EditTemplate>
-                            <Template Context="colaborador">
-                                @colaborador.jefe_inmediato
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Colaborador" Property="sede" Title="Sede">
-                            <EditTemplate Context="colaborador">
-                                <RadzenAutoComplete @bind-Value=@colaborador.sede FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@sedes>
-                                </RadzenAutoComplete>
-                            </EditTemplate>
-                            <Template Context="colaborador">
-                                @colaborador.sede
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Colaborador" Property="correo" Title="Correo">
-                            <EditTemplate Context="colaborador">
-                                <input type="email" class="form-control" @bind-value="colaborador.correo" />
-                            </EditTemplate>
-                            <Template Context="colaborador">
-                                @colaborador.correo
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Colaborador" Property="turno" Title="Turno">
-                            <EditTemplate Context="colaborador">
-                                <input type="text" class="form-control" @bind-value="colaborador.turno" />
-                            </EditTemplate>
-                            <Template Context="colaborador">
-                                @colaborador.turno
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Colaborador" Property="estado" Title="Estado">
-                            <EditTemplate Context="colaborador">
-                                <input type="text" class="form-control" @bind-value="colaborador.estado" />
-                            </EditTemplate>
-                            <Template Context="colaborador">
-                                @colaborador.estado
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Colaborador" Property="usuario_adiciono" Title="Usuario que adicionó">
-                            <EditTemplate Context="colaborador">
-                                @colaborador.usuario_adiciono
-                            </EditTemplate>
-                            <Template Context="colaborador">
-                                @colaborador.usuario_adiciono
-                            </Template>
-                        </RadzenDataGridColumn>
-                    </Columns>
-                </RadzenDataGridApp>
-			</div>
-		</div>
+                            }
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.cedula
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="nombres" Title="Nombres">
+                        <EditTemplate Context="colaborador">
+                            <input type="text" class="form-control" @bind-value="colaborador.nombres" />
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.nombres
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="cargo" Title="Cargo">
+                        <EditTemplate Context="colaborador">
+                            <input type="text" class="form-control" @bind-value="colaborador.cargo" />
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.cargo
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="area" Title="Área">
+                        <EditTemplate Context="colaborador">
+                            <input type="text" class="form-control" @bind-value="colaborador.area" />
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.area
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="jefe_inmediato" Title="Jefe Inmediato">
+                        <EditTemplate Context="colaborador">
+                            <RadzenAutoComplete @bind-Value=@colaborador.jefe_inmediato FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@jefes>
+                            </RadzenAutoComplete>
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.jefe_inmediato
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="sede" Title="Sede">
+                        <EditTemplate Context="colaborador">
+                            <RadzenAutoComplete @bind-Value=@colaborador.sede FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@sedes>
+                            </RadzenAutoComplete>
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.sede
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="correo" Title="Correo">
+                        <EditTemplate Context="colaborador">
+                            <input type="email" class="form-control" @bind-value="colaborador.correo" />
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.correo
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="turno" Title="Turno">
+                        <EditTemplate Context="colaborador">
+                            <input type="text" class="form-control" @bind-value="colaborador.turno" />
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.turno
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="estado" Title="Estado">
+                        <EditTemplate Context="colaborador">
+                            <input type="text" class="form-control" @bind-value="colaborador.estado" />
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.estado
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="usuario_adiciono" Title="Usuario que adicionó">
+                        <EditTemplate Context="colaborador">
+                            @colaborador.usuario_adiciono
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.usuario_adiciono
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGridApp>
+        </div>
+    </div>
 
-	</div>
+</div>
 
-    <!-- Modal cargue masivo progress-->
-    <_ModalComponent @ref="_modalCargueMasivoProgress"
-                     _isLoading=@false
-                     titulo="Cargue Masivo"
-                     eventoAceptar=@(() => _modalCargueMasivoProgress.cerrarModal())
-                     width="1000">
-        <CuerpoModal>
-            <div class="row">
-                <div class="col-xl-6 col-sm-6">
-                    <div class="card mini-stat bg-primary">
-                        <div class="card-body mini-stat-img">
-                            <div class="mini-stat-icon">
-                                <i class="mdi mdi-cube-outline float-end"></i>
-                            </div>
-                            <div class="text-white">
-                                <h6 class="text-uppercase mb-3 font-size-16 text-white">TOTAL REGISTROS</h6>
-                                <h2 class="mb-4 text-white">@datos_cargue_masivo.total_registros</h2>
-                            </div>
+<!-- Modal cargue masivo progress-->
+<_ModalComponent @ref="_modalCargueMasivoProgress"
+                 _isLoading=@false
+                 titulo="Cargue Masivo"
+                 eventoAceptar=@(() => _modalCargueMasivoProgress.cerrarModal())
+                 width="1000">
+    <CuerpoModal>
+        <div class="row">
+            <div class="col-xl-6 col-sm-6">
+                <div class="card mini-stat bg-primary">
+                    <div class="card-body mini-stat-img">
+                        <div class="mini-stat-icon">
+                            <i class="mdi mdi-cube-outline float-end"></i>
                         </div>
-                    </div>
-                </div>
-                <div class="col-xl-6 col-sm-6">
-                    <div class="card mini-stat bg-primary">
-                        <div class="card-body mini-stat-img">
-                            <div class="mini-stat-icon">
-                                <i class="mdi mdi-buffer float-end"></i>
-                            </div>
-                            <div class="text-white">
-                                <h6 class="text-uppercase mb-3 font-size-16 text-white">REGISTROS CARGADOS</h6>
-                                <h2 class="mb-4 text-white">@datos_cargue_masivo.total_registros_procesados</h2>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-6 col-sm-6">
-                    <div class="card mini-stat bg-primary">
-                        <div class="card-body mini-stat-img">
-                            <div class="mini-stat-icon">
-                                <i class="mdi mdi-tag-text-outline float-end"></i>
-                            </div>
-                            <div class="text-white">
-                                <h6 class="text-uppercase mb-3 font-size-16 text-white">REGISTROS NO CARGADOS</h6>
-                                <h2 class="mb-4 text-white">@datos_cargue_masivo.total_registros_no_procesados</h2>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-6 col-sm-6">
-                    <div class="card mini-stat bg-primary">
-                        <div class="card-body mini-stat-img">
-                            <div class="mini-stat-icon">
-                                <i class="mdi mdi-tag-text-outline float-end"></i>
-                            </div>
-                            <div class="text-white">
-                                <h6 class="text-uppercase mb-3 font-size-16 text-white">REGISTROS FALTANTES</h6>
-                                <h2 class="mb-4 text-white">@datos_cargue_masivo.total_faltantes</h2>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-12 col-sm-6">
-                    <div class="card mini-stat bg-primary">
-                        <div class="card-body mini-stat-img">
-                            <div class="mini-stat-icon">
-                                <i class="mdi mdi-briefcase-check float-end"></i>
-                            </div>
-                            <div class="text-white">
-                                <h6 class="text-uppercase mb-3 font-size-16 text-white">ESTADO DEL CARGUE</h6>
-                                <h2 class="mb-4 text-white">@datos_cargue_masivo.estado</h2>
-
-                            </div>
+                        <div class="text-white">
+                            <h6 class="text-uppercase mb-3 font-size-16 text-white">TOTAL REGISTROS</h6>
+                            <h2 class="mb-4 text-white">@datos_cargue_masivo.total_registros</h2>
                         </div>
                     </div>
                 </div>
             </div>
-        </CuerpoModal>
-    </_ModalComponent>
-
-    <!-- Modal cargue masivo-->
-    <_ModalComponent @ref="_modalCargueMasivo"
-                     _isLoading=@false
-                     titulo="Cargue Masivo"
-                     eventoAceptar=@CargueMasivoColaboradores
-                     width="700">
-        <CuerpoModal>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="form-group">
-                        <InputFile id="fuFile" OnChange="OnInputFileChange" accept=".xlsx" />
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <a href="Formatos/PlantillaColaboradores.xlsx" download class="btn btn-primary">Descargar Plantilla</a>
+            <div class="col-xl-6 col-sm-6">
+                <div class="card mini-stat bg-primary">
+                    <div class="card-body mini-stat-img">
+                        <div class="mini-stat-icon">
+                            <i class="mdi mdi-buffer float-end"></i>
+                        </div>
+                        <div class="text-white">
+                            <h6 class="text-uppercase mb-3 font-size-16 text-white">REGISTROS CARGADOS</h6>
+                            <h2 class="mb-4 text-white">@datos_cargue_masivo.total_registros_procesados</h2>
+                        </div>
                     </div>
                 </div>
             </div>
-        </CuerpoModal>
-    </_ModalComponent>
-}
+            <div class="col-xl-6 col-sm-6">
+                <div class="card mini-stat bg-primary">
+                    <div class="card-body mini-stat-img">
+                        <div class="mini-stat-icon">
+                            <i class="mdi mdi-tag-text-outline float-end"></i>
+                        </div>
+                        <div class="text-white">
+                            <h6 class="text-uppercase mb-3 font-size-16 text-white">REGISTROS NO CARGADOS</h6>
+                            <h2 class="mb-4 text-white">@datos_cargue_masivo.total_registros_no_procesados</h2>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6 col-sm-6">
+                <div class="card mini-stat bg-primary">
+                    <div class="card-body mini-stat-img">
+                        <div class="mini-stat-icon">
+                            <i class="mdi mdi-tag-text-outline float-end"></i>
+                        </div>
+                        <div class="text-white">
+                            <h6 class="text-uppercase mb-3 font-size-16 text-white">REGISTROS FALTANTES</h6>
+                            <h2 class="mb-4 text-white">@datos_cargue_masivo.total_faltantes</h2>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-12 col-sm-6">
+                <div class="card mini-stat bg-primary">
+                    <div class="card-body mini-stat-img">
+                        <div class="mini-stat-icon">
+                            <i class="mdi mdi-briefcase-check float-end"></i>
+                        </div>
+                        <div class="text-white">
+                            <h6 class="text-uppercase mb-3 font-size-16 text-white">ESTADO DEL CARGUE</h6>
+                            <h2 class="mb-4 text-white">@datos_cargue_masivo.estado</h2>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </CuerpoModal>
+</_ModalComponent>
+
+<!-- Modal cargue masivo-->
+<_ModalComponent @ref="_modalCargueMasivo"
+                 _isLoading=@false
+                 titulo="Cargue Masivo"
+                 eventoAceptar=@CargueMasivoColaboradores
+                 width="700">
+    <CuerpoModal>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <InputFile id="fuFile" OnChange="OnInputFileChange" accept=".xlsx" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <a href="Formatos/PlantillaColaboradores.xlsx" download class="btn btn-primary">Descargar Plantilla</a>
+                </div>
+            </div>
+        </div>
+    </CuerpoModal>
+</_ModalComponent>
 
 
 @code {
@@ -319,6 +314,8 @@ else
     {
         _isLoading = true;
         StateHasChanged();
+
+        await Task.Yield();
 
         colaboradores = await _colaboradorService.consultarColaboradores();
         colaboradores_temp = colaboradores;
