@@ -15,6 +15,6 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Interfaces.Colaboradores
         public Task<Colaborador> consultarColaboradorByCedula(string cedula);
         public Task<IEnumerable<Colaborador>> consultarColaboradores();
         public Task<bool> insertarRegistroAsistencia(RegistroAsistencia registro);
-        public Task<IEnumerable<RegistroAsistencia>> consultarRegistrosAsistencia();
+        public Task<IEnumerable<RegistroAsistencia>> consultarRegistrosAsistencia(FiltroAsistencia filtros);
     }
 }

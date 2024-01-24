@@ -3,6 +3,7 @@
 @using AppDemoBlazor.Model.Models.CargueMasivo
 @using RegistroAsistenciasSMART.Data.Repositories.Interfaces.Colaboradores
 @using RegistroAsistenciasSMART.Model.Models
+@using RegistroAsistenciasSMART.Model.Models.Colaboradores
 @using RegistroAsistenciasSMART.Services.Interfaces.Colaboradores
 
 @inject IColaboradorService _colaboradorService
@@ -30,16 +31,15 @@
         </div>
 
         <div class="card-body">
-
             <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Agregar nuevo colaborador" Click="@InsertRow" Disabled=@(colaboradorToInsert != null || colaboradorToUpdate != null) />
             <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="add_circle_outline" class="mt-2 mb-4" Text="Cargar colaboradores masivamente" Click=@(() => _modalCargueMasivo.abrirModal()) />
             <button type="button" class="btn btn-primary" @onclick="LoadData" style="float: right">Actualizar</button>
             <RadzenDataGridApp 
+                AllowVirtualization="false"
                 @ref="colaboradoresGrid"
-                LogicalFilterOperator="LogicalFilterOperator.Or"
                 Data="@colaboradores_temp"
                 TItem="Colaborador"
-                IsLoading="@_isLoading"
+                IsLoading="@_isLoadingColaboradores"
                 EditMode="DataGridEditMode.Single"
                 RowUpdate="@OnUpdateRow"
                 RowCreate="@OnCreateRow"
@@ -47,7 +47,7 @@
                 Page="@Reset"
                 Filter="@Reset">
                 <Columns>
-                    <RadzenDataGridColumn TItem="Colaborador" Frozen="true" Context="Colaborador" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="156px">
+                    <RadzenDataGridColumn TItem="Colaborador" Frozen="true" Context="Colaborador" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="200px">
                         <Template Context="colaborador">
                             <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(colaborador))" @onclick:stopPropagation="true">
                             </RadzenButton>
@@ -164,6 +164,116 @@
 
 </div>
 
+<div class="row">
+    <div class="card">
+        <div class="card-header">
+            <h6 class="mb-0">Filtros</h6>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Fecha desde</label>
+                    <input class="form-control" type="date"  @bind-value="filtros.fecha_desde"/>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Fecha hasta</label>
+                    <input class="form-control" type="date" @bind-value="filtros.fecha_hasta" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Cédula</label>
+                    <input class="form-control" type="text" @bind-value="filtros.cedula"/>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Nombres</label>
+                    <input class="form-control" type="text" @bind-value="filtros.nombres" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Cargo</label>
+                    <input class="form-control" type="text" @bind-value="filtros.cargo" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Área</label>
+                    <input class="form-control" type="text" @bind-value="filtros.area" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Sede</label>
+                    <input class="form-control" type="text" @bind-value="filtros.sede" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tipo de reporte</label>
+                    <input class="form-control" type="text" @bind-value="filtros.reporta" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Jefe Inmediato</label>
+                    <input class="form-control" type="text" @bind-value="filtros.jefe_inmediato" />
+                </div>
+            </div>
+            <br />
+            <button class="btn btn-primary" @onclick="LoadDataRegistrosAsistencias">Buscar</button>
+            <button class="btn btn-secondary" @onclick=@(() => filtros = new FiltroAsistencia())>Limpiar</button>
+        </div>
+    </div>
+
+</div>
+
+<div class="row">
+    <div class="card">
+        <div class="card-header">
+            <h6 class="mb-0">Registro de Asistencia</h6>
+        </div>
+
+        <div class="card-body">
+            <RadzenDataGridApp ExpandMode="DataGridExpandMode.Multiple"
+                               Data="registros_asistencias_temp"
+                               TItem="RegistroAsistencia"
+                               IsLoading=@_isLoadingRegistrosAsistencia>
+                <Columns>
+                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="fecha_adicion" Title="Fecha">
+                        <Template Context="data">
+                            @(Convert.ToDateTime(data.fecha_adicion).ToString("dddd, dd MMMM yyyy"))
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="fecha_adicion" Title="Hora">
+                        <Template Context="data">
+                            @(Convert.ToDateTime(data.fecha_adicion).ToString("hh:mm tt"))
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="reporta" Title="Registro"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="sede" Title="Sede"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="cedula" Title="Cédula"></RadzenDataGridColumn>
+                    
+                    <RadzenDataGridColumn TItem="RegistroAsistencia"  Title="Nombre">
+                        <Template Context="data">
+                            @(colaboradores.FirstOrDefault(c => c.cedula.Equals(data.cedula))?.nombres)
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistencia" Title="Cargo">
+                        <Template Context="data">
+                            @(colaboradores.FirstOrDefault(c => c.cedula.Equals(data.cedula))?.cargo)
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistencia" Title="Líder">
+                        <Template Context="data">
+                            @(colaboradores.FirstOrDefault(c => c.cedula.Equals(data.cedula))?.jefe_inmediato)
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistencia" Title="Subproceso">
+                        <Template Context="data">
+                            @(colaboradores.FirstOrDefault(c => c.cedula.Equals(data.cedula))?.area)
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="longitud" Title="Longitud"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="latitud" Title="Latitud"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="ip_address" Title="Dirección IP"></RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGridApp>
+        </div>
+    </div>
+
+</div>
+
 <!-- Modal cargue masivo progress-->
 <_ModalComponent @ref="_modalCargueMasivoProgress"
                  _isLoading=@false
@@ -270,10 +380,17 @@
 @code {
     private string filtro = "";
 
-    private bool _isLoading = true;
+    private FiltroAsistencia filtros = new FiltroAsistencia();
+
+
+    private bool _isLoadingColaboradores = true;
+    private bool _isLoadingRegistrosAsistencia = false;
 
     IEnumerable<Colaborador> colaboradores;
     IEnumerable<Colaborador> colaboradores_temp;
+
+    IEnumerable<RegistroAsistencia> registros_asistencias;
+    IEnumerable<RegistroAsistencia> registros_asistencias_temp;
 
     RadzenDataGrid<Colaborador> colaboradoresGrid;
 
@@ -305,14 +422,14 @@
         }
         catch (Exception exe)
         {
-            _logger.LogError(exe, "Error al consultar colaboradores");
-            await _jsRuntime.SweetAlertUsual("Error", "Error al consultar colaboradores", TipoMensajeSweetAlert.error);
+            _logger.LogError(exe, "Error al consultar información");
+            await _jsRuntime.SweetAlertUsual("Error", "Error al consultar información", TipoMensajeSweetAlert.error);
         }
     }
 
-    private async Task LoadData()
+    private async Task LoadDataColaboradores()
     {
-        _isLoading = true;
+        _isLoadingColaboradores = true;
         StateHasChanged();
 
         await Task.Yield();
@@ -322,23 +439,45 @@
         jefes = colaboradores.DistinctBy(c => c.jefe_inmediato).Select(c => c.jefe_inmediato);
         sedes = colaboradores.DistinctBy(c => c.sede).Select(c => c.sede);
 
-        await Filtrar();
-
-        _isLoading = false;
+        _isLoadingColaboradores = false;
         StateHasChanged();
     }
+
+    private async Task LoadDataRegistrosAsistencias()
+    {
+        _isLoadingRegistrosAsistencia = true;
+        StateHasChanged();
+
+        await Task.Yield();
+
+        registros_asistencias = await _colaboradorService.consultarRegistrosAsistencia(filtros);
+        registros_asistencias_temp = registros_asistencias;
+
+        _isLoadingRegistrosAsistencia = false;
+        StateHasChanged();
+    }
+
+    private async Task LoadData()
+    {
+        await LoadDataColaboradores();
+        // await LoadDataRegistrosAsistencias();
+
+        await Filtrar();
+    }
+
 
     private async Task Filtrar()
     {
         try
         {
+            await Task.Yield();
+
             if (string.IsNullOrEmpty(filtro))
             {
                 colaboradores_temp = colaboradores;
                 return;
             }
 
-            //Firmas de documentos
             colaboradores_temp = colaboradores.Where
             (
                 c =>
@@ -354,9 +493,6 @@
 
             );
 
-
-            _isLoading = false;
-            StateHasChanged();
         }
         catch (Exception exe)
         {

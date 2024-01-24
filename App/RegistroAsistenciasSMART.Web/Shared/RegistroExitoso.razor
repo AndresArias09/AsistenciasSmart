@@ -1,0 +1,33 @@
+﻿<div class="website">
+    <section>
+        <div class="" id="headSmart">
+            <img id="smart" src="https://i.ibb.co/2cG4fmm/Group-398.png">
+        </div>
+    </section><br>
+
+    <section>
+        <div id="emogi">
+            <script src="https://cdn.lordicon.com/lordicon.js"></script>
+            <lord-icon src="https://cdn.lordicon.com/dxlthpvq.json" trigger="loop" colors="primary:#ffffff,secondary:#ffffff"
+                       delay="500" style="width:250px;height:250px">
+            </lord-icon>
+        </div>
+    </section><br>
+
+    <section>
+        <div id="mensaje">
+            <p id="mensaje">¡<b>@nombre</b> !</p>
+        </div>
+    </section><br>
+
+    <section>
+        <div id="mensaje2">
+            <p id="mensaje2">Tu registro ha sido exitoso</p>
+        </div>
+    </section>
+</div>
+
+@code {
+    [Parameter]
+    public string nombre { get; set; }
+}

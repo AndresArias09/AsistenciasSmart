@@ -658,14 +658,14 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
                 if (registro.reporta.ToLower().Contains("entrada"))
                 {
-                    saludo = "Bienvenido/a";
+                    saludo = "Bienvenido/a,";
                 }
                 else if(registro.reporta.ToLower().Contains("salida"))
                 {
-                    saludo = "Que tengas un buen día";
+                    saludo = "Que tengas un buen día,";
                 }
 
-                return new ResponseDTO() { estado = "OK", descripcion = $"{saludo}, {colaborador.nombres}"};
+                return new ResponseDTO() { estado = "OK", descripcion = $"{saludo} {colaborador.nombres}"};
             }
             else
             {
@@ -673,9 +673,9 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             }
         }
 
-        public async Task<IEnumerable<RegistroAsistencia>> consultarRegistrosAsistencia()
+        public async Task<IEnumerable<RegistroAsistencia>> consultarRegistrosAsistencia(FiltroAsistencia filtros)
         {
-            return await _colaboradorRepository.consultarRegistrosAsistencia();
+            return await _colaboradorRepository.consultarRegistrosAsistencia(filtros);
         }
     }
 }

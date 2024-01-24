@@ -41,7 +41,7 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
                             estado,
                             fecha_adicion,
                             usuario_adiciono
-                        FROM asistencia.colaboradores
+                        FROM colaboradores
                         where cedula = @cedula;
                         ";
 
@@ -67,7 +67,7 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
                             estado,
                             fecha_adicion,
                             usuario_adiciono
-                        FROM asistencia.colaboradores;
+                        FROM colaboradores;
                         ";
 
             return await db.QueryAsync<Colaborador>(sql);
@@ -77,7 +77,7 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
         {
             var db = dbConnection();
 
-            var sql = @"INSERT INTO `asistencia`.`colaboradores`
+            var sql = @"INSERT INTO `colaboradores`
                         (
                             `cedula`,
                             `nombres`,
@@ -127,7 +127,7 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
         {
             var db = dbConnection();
 
-            var sql = @"UPDATE asistencia.colaboradores
+            var sql = @"UPDATE colaboradores
                         SET
                             nombres = @nombres,
                             cargo = @cargo,
@@ -159,7 +159,7 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
         {
             var db = dbConnection();
 
-            var sql = @"delete from asistencia.colaboradores where cedula = @cedula";
+            var sql = @"delete from colaboradores where cedula = @cedula";
 
             DynamicParameters p = new DynamicParameters();
             p.Add("@cedula", cedula);
@@ -214,26 +214,88 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
             return result > 0;
         }
 
-        public async Task<IEnumerable<RegistroAsistencia>> consultarRegistrosAsistencia()
+        public async Task<IEnumerable<RegistroAsistencia>> consultarRegistrosAsistencia(FiltroAsistencia filtros)
         {
             var db = dbConnection();
 
             var sql = @"
                         SELECT 
-                            fecha,
-                            hora,
-                            Cedula,
-                            Sede,
-                            Reporta,
-                            Correo as email,
-                            latitud,
-                            longitud,
-                            fecha_SQL as fecha_adicion,
-                            ip_address
-                        FROM asistencia.registro
-                        ";
+                        fecha,
+                        cast(hora as char) as hora,
+                        c.Cedula,
+                        c.nombres,
+                        r.sede,
+                        c.area,
+                        Reporta,
+                        c.correo,
+                        latitud,
+                        longitud,
+                        fecha_SQL as fecha_adicion,
+                        ip_address as ip_address
+                    FROM registro r
+                    inner join colaboradores c on r.cedula = c.cedula
+                    where c.cedula <> ''
+            ";
 
-            return await db.QueryAsync<RegistroAsistencia>(sql);
+            if(filtros.fecha_desde is not null)
+            {
+                sql += " and date(r.fecha_SQL) >= date(@fecha_desde)";
+            }
+
+            if (filtros.fecha_hasta is not null)
+            {
+                sql += " and date(r.fecha_SQL) <= date(@fecha_hasta)";
+            }
+
+            if (!string.IsNullOrEmpty(filtros.nombres))
+            {
+                sql += " and LOWER(c.nombres) like CONCAT('%', @nombres, '%')";
+            }
+
+            if (!string.IsNullOrEmpty(filtros.cedula))
+            {
+                sql += " and LOWER(c.cedula) like CONCAT('%', @cedula, '%')";
+            }
+
+            if (!string.IsNullOrEmpty(filtros.sede))
+            {
+                sql += " and LOWER(r.sede) like CONCAT('%', @sede, '%')";
+            }
+
+            if (!string.IsNullOrEmpty(filtros.area))
+            {
+                sql += " and LOWER(c.area) like CONCAT('%', @area, '%')";
+            }
+
+            if (!string.IsNullOrEmpty(filtros.reporta))
+            {
+                sql += " and LOWER(r.reporta) like CONCAT('%', @reporta, '%')";
+            }
+
+            if (!string.IsNullOrEmpty(filtros.jefe_inmediato))
+            {
+                sql += " and LOWER(c.jefe_inmediato) like CONCAT('%', @jefe, '%')";
+            }
+
+            if (!string.IsNullOrEmpty(filtros.cargo))
+            {
+                sql += " and LOWER(c.cargo) like CONCAT('%', @cargo, '%')";
+            }
+
+            sql += " order by fecha_SQL desc";
+
+            var p = new DynamicParameters();
+            p.Add("@fecha_desde",filtros.fecha_desde.GetValueOrDefault().ToString("yyyy-MM-dd"));
+            p.Add("@fecha_hasta", filtros.fecha_hasta.GetValueOrDefault().ToString("yyyy-MM-dd"));
+            p.Add("@nombres",filtros.nombres.ToLower());
+            p.Add("@cedula",filtros.cedula.ToLower());
+            p.Add("@sede",filtros.sede.ToLower());
+            p.Add("@area",filtros.area.ToLower());
+            p.Add("@reporta",filtros.reporta.ToLower());
+            p.Add("@jefe",filtros.jefe_inmediato.ToLower());
+            p.Add("@cargo",filtros.cargo.ToLower());
+
+            return await db.QueryAsync<RegistroAsistencia>(sql,p);
         }
     }
 }

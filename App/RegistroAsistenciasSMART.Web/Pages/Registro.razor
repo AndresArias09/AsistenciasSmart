@@ -2,11 +2,16 @@
 
 @page "/Registro/{sede}"
 @using Newtonsoft.Json
+@using RegistroAsistenciasSMART.Model.DTO
 @using RegistroAsistenciasSMART.Model.Models.Colaboradores
 @using RegistroAsistenciasSMART.Services.Interfaces.Colaboradores
+@using RegistroAsistenciasSMART.Services.Interfaces.Configuracion.Perfilamiento
 
 @inject IColaboradorService _colaboradorService
+@inject IUserService _userService
 @inject ILogger<Registro> _logger
+
+
 
 @if (_isLoading)
 {
@@ -14,70 +19,72 @@
 }
 else
 {
-    <div class="background">
-        <div class="shape"></div>
-        <div class="shape"></div>
-    </div>
+    @if (_registroExitoso)
+    {
+        <RegistroExitoso nombre=@nombre_registro_exitoso></RegistroExitoso>
+    }
+    else
+    {
+        <div class="website">
+            <section>
+                <div class="head" id="headSmart">
+                    <img id="smart" src="https://i.ibb.co/2cG4fmm/Group-398.png" alt="Logo de Smart Academia">
+                </div>
+            </section>
 
-    <div class="website">
-        <section>
-            <div class="head" id="headSmart">
-                <img id="smart" src="https://i.ibb.co/2cG4fmm/Group-398.png" alt="Logo de Smart Academia">
-            </div>
-        </section>
+            <section>
+                <div id="titulo">
+                    <h2 id="elTitulo">Bienvenid@@</h2>
+                </div>
+            </section>
 
-        <section>
-            <div id="titulo">
-                <h2 id="elTitulo">Bienvenid@@</h2>
-            </div>
-        </section>
+            <section>
+                <div id="titulo">
+                    <h2 id="elTitulo2">
+                        Registra tu asistencia diligenciando
+                        los siguientes datos
+                    </h2>
+                </div>
+            </section>
 
-        <section>
-            <div id="titulo">
-                <h2 id="elTitulo2">
-                    Registra tu asistencia diligenciando
-                    los siguientes datos
-                </h2>
-            </div>
-        </section>
+            <section>
+                <div class="container" id="formulario">
 
-        <section>
-            <div class="container" id="formulario">
-
-                <div id="formularioRegistro" name="formularioRegistro" class="needs-validation">
-                    <div class="mb-3">
-                        <label for="cedula" class="form-label">Documento</label>
-                        <input type="text" @bind-value="registro.cedula" name="cedula" id="cedula" class="form-control" placeholder="Ingresa tu número de documento">
-                    </div>
-
-                    <div class="row">
+                    <div id="formularioRegistro" name="formularioRegistro" class="needs-validation">
                         <div class="mb-3">
-                            <label for="reporta" class="form-label"> ¿Qué reportas? </label>
-                            <select @bind-value="registro.reporta" @bind-value:event="onchange" class="form-select" id="reporta" name="reporta">
-                                <option value="">[Seleccionar]</option>
-                                <option value="Entrada">Entrada</option>
-                                <option value="Salida">Salida</option>
-                                <option value="Traslado Salida">Traslado Salida</option>
-                                <option value="Traslado Entrada">Traslado Entrada</option>
-                            </select>
+                            <label for="cedula" class="form-label">Documento</label>
+                            <input type="text" @bind-value="registro.cedula" name="cedula" id="cedula" class="form-control" placeholder="Ingresa tu número de documento">
                         </div>
 
-                        <div class="col">
+                        <div class="row">
                             <div class="mb-3">
-                                <label for="sede" class="form-label"> ¿En qué sede? </label>
-                                <input type="text" @bind-value="registro.sede" id="sede" class="form-control" name="sede" readonly="readonly">
+                                <label for="reporta" class="form-label"> ¿Qué reportas? </label>
+                                <select @bind-value="registro.reporta" @bind-value:event="onchange" class="form-select" id="reporta" name="reporta">
+                                    <option value="">[Seleccionar]</option>
+                                    <option value="Entrada">Entrada</option>
+                                    <option value="Salida">Salida</option>
+                                    <option value="Traslado Salida">Traslado Salida</option>
+                                    <option value="Traslado Entrada">Traslado Entrada</option>
+                                </select>
+                            </div>
+
+                            <div class="col">
+                                <div class="mb-3">
+                                    <label for="sede" class="form-label"> ¿En qué sede? </label>
+                                    <input type="text" @bind-value="registro.sede" id="sede" class="form-control" name="sede" readonly="readonly">
+                                </div>
                             </div>
                         </div>
+
+                        <div id="boton" class="mb-4 mt-4">
+                            <button id="boton" type="button" @onclick="ProcesarRegistro"> Enviar registro </button>
+                        </div>
                     </div>
 
-                    <div id="boton" class="mb-4 mt-4">
-                        <button id="boton" type="button" @onclick="ProcesarRegistro"> Enviar registro </button>
-                    </div>
                 </div>
-
-            </div>
-        </section>
-    </div>
+            </section>
+        </div>
+    }
 }
 
 
@@ -86,11 +93,15 @@ else
     [Parameter]
     public string sede { get; set; }
 
+    private bool _registroExitoso = false;
+    private string nombre_registro_exitoso = "";
     private bool _isLoading = true;
 
     private UbicacionDTO ubicacion = new UbicacionDTO();
 
     private RegistroAsistencia registro = new RegistroAsistencia();
+
+    private bool ip_no_valida = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -104,6 +115,16 @@ else
                 {
                     await _jsRuntime.SweetAlertConfirmSuccess("Error", "URL no válida", TipoMensajeSweetAlert.error);
                     _navigationManager.NavigateTo("https://google.com");
+                    return;
+                }
+
+                string ip_address = await _jsRuntime.GetIpAddress();
+
+                IEnumerable<IpInfo> ips = _userService.consultarIpsAutorizados();
+
+                if (!ips.Any(ip => ip.ip_address.Equals(ip_address)))
+                {
+                    _navigationManager.NavigateTo("/NoAutorizado",true);
                     return;
                 }
 
@@ -174,8 +195,11 @@ else
 
             if (respuesta.estado.Equals("OK"))
             {
-                await _jsRuntime.SweetAlertConfirmSuccess("Registro exitoso", respuesta.descripcion, TipoMensajeSweetAlert.success);
-                _navigationManager.NavigateTo("https://google.com");
+                nombre_registro_exitoso = respuesta.descripcion;
+                _registroExitoso = true;
+                await _jsRuntime.SweetAlertClose();
+                StateHasChanged();
+                return;
             }
             else
             {
