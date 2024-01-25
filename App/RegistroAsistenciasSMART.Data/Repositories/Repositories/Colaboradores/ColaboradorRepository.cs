@@ -282,6 +282,11 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
                 sql += " and LOWER(c.cargo) like CONCAT('%', @cargo, '%')";
             }
 
+            if (!string.IsNullOrEmpty(filtros.correo))
+            {
+                sql += " and LOWER(c.correo) like CONCAT('%', @correo, '%')";
+            }
+
             sql += " order by fecha_SQL desc";
 
             var p = new DynamicParameters();
@@ -294,6 +299,7 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
             p.Add("@reporta",filtros.reporta.ToLower());
             p.Add("@jefe",filtros.jefe_inmediato.ToLower());
             p.Add("@cargo",filtros.cargo.ToLower());
+            p.Add("@correo",filtros.correo.ToLower());
 
             return await db.QueryAsync<RegistroAsistencia>(sql,p);
         }

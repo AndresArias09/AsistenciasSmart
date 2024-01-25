@@ -205,8 +205,12 @@
                     <input class="form-control" type="text" @bind-value="filtros.reporta" />
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">Jefe Inmediato</label>
+                    <label class="form-label">Jefe inmediato</label>
                     <input class="form-control" type="text" @bind-value="filtros.jefe_inmediato" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Correo electrónico</label>
+                    <input class="form-control" type="text" @bind-value="filtros.correo" />
                 </div>
             </div>
             <br />
@@ -239,6 +243,7 @@
                             @(Convert.ToDateTime(data.fecha_adicion).ToString("hh:mm tt"))
                         </Template>
                     </RadzenDataGridColumn>
+                    
                     <RadzenDataGridColumn TItem="RegistroAsistencia" Property="reporta" Title="Registro"></RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="RegistroAsistencia" Property="sede" Title="Sede"></RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="RegistroAsistencia" Property="cedula" Title="Cédula"></RadzenDataGridColumn>
@@ -246,6 +251,11 @@
                     <RadzenDataGridColumn TItem="RegistroAsistencia"  Title="Nombre">
                         <Template Context="data">
                             @(colaboradores.FirstOrDefault(c => c.cedula.Equals(data.cedula))?.nombres)
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="" Title="Correo institucional">
+                        <Template Context="data">
+                            @(colaboradores.FirstOrDefault(c => c.cedula.Equals(data.cedula))?.correo)
                         </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="RegistroAsistencia" Title="Cargo">

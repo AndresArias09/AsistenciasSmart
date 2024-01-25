@@ -17,5 +17,6 @@ namespace RegistroAsistenciasSMART.Model.Models.Colaboradores
         public string reporta { get; set; } = "";
         public string jefe_inmediato { get; set; } = "";
         public string cargo { get; set; } = "";
+        public string correo { get; set; } = "";
     }
 }
