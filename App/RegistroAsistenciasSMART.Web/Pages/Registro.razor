@@ -199,6 +199,10 @@ else
                 _registroExitoso = true;
                 await _jsRuntime.SweetAlertClose();
                 StateHasChanged();
+
+                await Task.Delay(5000);
+                _navigationManager.NavigateTo("https://google.com");
+
                 return;
             }
             else

@@ -38,5 +38,15 @@
 </div>
 
 @code {
-
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try{
+            await Task.Delay(5000);
+            _navigationManager.NavigateTo("https://google.com");
+        }
+        catch(Exception exe)
+        {
+            
+        }
+    }
 }

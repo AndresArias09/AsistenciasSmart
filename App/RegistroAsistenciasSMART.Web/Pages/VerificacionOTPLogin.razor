@@ -141,7 +141,7 @@
                 await customAuthStateProvider.UpdateAuthenticationState(session);
 
 
-                _logger.LogInformation($"Login exitoso para usuario {user.usuario}");
+                // _logger.LogInformation($"Login exitoso para usuario {user.usuario}");
 
                 CircuitHandlerService handler = (CircuitHandlerService)BlazorCircuitHandler;
                 _circuitUserServer.Connect(handler.CirtuidId, session);

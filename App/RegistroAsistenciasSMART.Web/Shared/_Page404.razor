@@ -1,15 +1,39 @@
-﻿@layout Layout404
+﻿@layout RegistroLayout
 
-<PageTitle>Error 404</PageTitle>
+<PageTitle>Algo salió mal</PageTitle>
 
-<div id="notfound">
-    <div class="notfound">
-        <div class="notfound-404">
-        <h3>Oops! Página o recurso no encontrado</h3>
-        <h1><span>4</span><span>0</span><span>4</span></h1>
+<style>
+    section {
+        text-align: center !important;
+    }
+
+</style>
+
+<div class="website">
+    <section>
+        <div class="head" id="headSmart">
+            <img id="smart" alt="Logo de Smart Academia" src="https://i.ibb.co/2cG4fmm/Group-398.png">
         </div>
-        <h2>Lo sentimos, pero no encontramos la página o recurso que solicitaste</h2>
-    </div>
+    </section><br>
+
+    <section>
+        <div id="emogi">
+            <script src="https://cdn.lordicon.com/lordicon.js"></script>
+            <lord-icon src="https://cdn.lordicon.com/krenhavm.json"
+                       trigger="loop"
+                       colors="primary:#ffffff,secondary:#ffffff"
+                       style="width:250px;height:250px">
+            </lord-icon>
+        </div>
+    </section>
+
+    <section>
+        <div id="contenido">
+            <div id="msm">
+                <p id="mensaje">¡Upss! Algo no salió bien</p>
+            </div>
+        </div>
+    </section><br>
 </div>
 
 @code {
