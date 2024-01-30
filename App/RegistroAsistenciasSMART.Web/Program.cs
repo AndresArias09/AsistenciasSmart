@@ -121,6 +121,16 @@ try
         context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
         context.Response.Headers.Add("SameSite", "Strict");
         //context.Response.Headers.Add("Clear-Site-Data", @"""cache""");
+
+        string path = context.Request.Path.Value;
+
+        if (path.EndsWith(".js") || path.EndsWith(".html"))
+        {
+            context.Response.Headers.Add("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+            context.Response.Headers.Add("Expires", "0");
+            context.Response.Headers.Add("Pragma", "no-cache");
+        }
+
         await next();
     });
 
