@@ -8,3 +8,15 @@
     --rz-primary-dark: #892222 !important;
     --rz-primary-darker: rgb(82, 20, 20) !important;
 }
+
+.rz-column-title-content {
+    white-space: normal !important;
+    overflow: auto !important;
+    padding: 2px !important;
+}
+
+.rz-cell-data {
+    white-space: normal !important;
+    overflow: auto !important;
+    padding: 2px !important;
+}

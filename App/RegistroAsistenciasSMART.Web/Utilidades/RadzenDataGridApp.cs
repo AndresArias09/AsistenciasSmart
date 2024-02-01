@@ -9,7 +9,7 @@ namespace RegistroAsistenciasSMART.Web.Utilidades
         {
             FilterCaseSensitivity = Radzen.FilterCaseSensitivity.CaseInsensitive;
             FilterMode = Radzen.FilterMode.SimpleWithMenu;
-            ColumnWidth = "200px";
+            ColumnWidth = "150px";
             AllowAlternatingRows = true;
             AllowFiltering = true;
             AllowPaging = true;

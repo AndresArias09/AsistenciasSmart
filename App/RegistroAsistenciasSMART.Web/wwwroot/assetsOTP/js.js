@@ -24,4 +24,7 @@ $('.digit-group').find('input').each(function () {
 			}
 		}
 	});
+	$(this).on('focus', function () {
+		$(this).select();
+	});
 });
