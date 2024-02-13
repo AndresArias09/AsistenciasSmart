@@ -398,5 +398,6 @@ FodyWeavers.xsd
 
 
 App/RegistroAsistenciasSMART.Web/ArchivosCargueMasivo
+App/RegistroAsistenciasSMART.Web/Reportes
 App/RegistroAsistenciasSMART.Web/wwwroot/Temporales/
 App/RegistroAsistenciasSMART.Web/wwwroot/archivosTemporales/
