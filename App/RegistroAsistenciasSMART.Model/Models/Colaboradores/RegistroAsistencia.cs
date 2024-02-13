@@ -17,7 +17,6 @@ namespace RegistroAsistenciasSMART.Model.Models.Colaboradores
         public string latitud { get; set; } = "";
         public string longitud { get; set; } = "";
         public string ip_address { get; set; } = "";
-        public string email { get; set; } = "";
         public DateTime? fecha_adicion { get; set;}
     }
 }

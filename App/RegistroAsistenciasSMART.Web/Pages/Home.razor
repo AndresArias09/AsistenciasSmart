@@ -5,6 +5,7 @@
 @using RegistroAsistenciasSMART.Model.Models
 @using RegistroAsistenciasSMART.Model.Models.Colaboradores
 @using RegistroAsistenciasSMART.Services.Interfaces.Colaboradores
+@using System.Globalization
 
 @inject IColaboradorService _colaboradorService
 @inject ILogger<Home> _logger
@@ -228,6 +229,7 @@
         </div>
 
         <div class="card-body">
+            <button class="btn btn-primary mb-3" @onclick="DescargarExcelAsistencias" >Reporte excel</button>
             <RadzenDataGridApp ExpandMode="DataGridExpandMode.Multiple"
                                Data="registros_asistencias_temp"
                                TItem="RegistroAsistencia"
@@ -235,7 +237,7 @@
                 <Columns>
                     <RadzenDataGridColumn TItem="RegistroAsistencia" Property="fecha_adicion" Title="Fecha">
                         <Template Context="data">
-                            @(Convert.ToDateTime(data.fecha_adicion).ToString("dddd, dd MMMM yyyy"))
+                            @(Convert.ToDateTime(data.fecha_adicion).ToString("dddd, dd MMMM yyyy",new CultureInfo("es-ES")))
                         </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="RegistroAsistencia" Property="fecha_adicion" Title="Hora">
@@ -289,10 +291,10 @@
                  _isLoading=@false
                  titulo="Cargue Masivo"
                  eventoAceptar=@(() => _modalCargueMasivoProgress.cerrarModal())
-                 width="1000">
+                 width="1200">
     <CuerpoModal>
         <div class="row">
-            <div class="col-xl-6 col-sm-6">
+            <div class="col-xl-3 col-sm-6">
                 <div class="card mini-stat bg-primary">
                     <div class="card-body mini-stat-img">
                         <div class="mini-stat-icon">
@@ -305,7 +307,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-6 col-sm-6">
+            <div class="col-xl-3 col-sm-6">
                 <div class="card mini-stat bg-primary">
                     <div class="card-body mini-stat-img">
                         <div class="mini-stat-icon">
@@ -318,7 +320,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-6 col-sm-6">
+            <div class="col-xl-3 col-sm-6">
                 <div class="card mini-stat bg-primary">
                     <div class="card-body mini-stat-img">
                         <div class="mini-stat-icon">
@@ -332,7 +334,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-6 col-sm-6">
+            <div class="col-xl-3 col-sm-6">
                 <div class="card mini-stat bg-primary">
                     <div class="card-body mini-stat-img">
                         <div class="mini-stat-icon">
@@ -360,6 +362,13 @@
                     </div>
                 </div>
             </div>
+            <h4>Errores presentados en el archivo:</h4>
+            @foreach(var error in datos_cargue_masivo.errores)
+            {
+                <div class="alert alert-danger" role="alert">
+                    Registro #@(error.numero_registro) (@error.identificador_registro) : @error.descripcion
+                </div>
+            }
         </div>
     </CuerpoModal>
 </_ModalComponent>
@@ -664,6 +673,8 @@
 
         await _jsRuntime.SweetAlertLoading("Procesando", "Procesando solicitud");
 
+        datos_cargue_masivo = new CargueMasivoDTO();
+
         IEnumerable<Archivo> archivos = await FileHelper.getTempFiles(selectedFiles);
 
         Archivo archivo_cargue = archivos.FirstOrDefault();
@@ -691,5 +702,26 @@
     {
         this.datos_cargue_masivo = e;
         StateHasChanged();
+    }
+
+    private async Task DescargarExcelAsistencias()
+    {
+        try
+        {
+            await _jsRuntime.SweetAlertLoading("Procesando", "Procesando solicitud");
+
+            Archivo archivo = await _colaboradorService.generarReporteRegistroAsistencias(filtros);
+
+            if (archivo is null) return;
+
+            await _jsRuntime.SweetAlertClose();
+
+            await _jsRuntime.DescargarArchivo(archivo.ruta_absoluta, "Reporte");
+        }
+        catch (Exception exe)
+        {
+            _logger.LogError(exe, $"Error al generar reporte excel registro de asistencias");
+            await _jsRuntime.SweetAlertUsual("Error", "Error interno del servidor", TipoMensajeSweetAlert.error);
+        }
     }
 }

@@ -15,5 +15,13 @@ namespace AppDemoBlazor.Model.Models.CargueMasivo
         public int total_registros_procesados { get; set; } = 0;
         public int total_registros_no_procesados { get; set; } = 0;
         public int total_faltantes{ get; set; } = 0;
+        public List<DetalleErrorCargueMasivo> errores { get; set; } = new List<DetalleErrorCargueMasivo>();
+    }
+
+    public class DetalleErrorCargueMasivo
+    {
+        public long numero_registro { get; set; } = 0;
+        public string identificador_registro { get; set; } = "";
+        public string descripcion { get; set; } = "";
     }
 }

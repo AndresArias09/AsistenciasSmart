@@ -22,5 +22,6 @@ namespace RegistroAsistenciasSMART.Services.Interfaces.Colaboradores
         public Task<ResponseDTO> cargueMasivoColaboradores(Archivo archivo_cargue, IProgress<CargueMasivoDTO> progress, string usuario_accion);
         public Task<ResponseDTO> insertarRegistroAsistencia(RegistroAsistencia registro);
         public Task<IEnumerable<RegistroAsistencia>> consultarRegistrosAsistencia(FiltroAsistencia filtros);
+        public Task<Archivo> generarReporteRegistroAsistencias(FiltroAsistencia filtros);
     }
 }

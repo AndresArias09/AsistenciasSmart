@@ -204,7 +204,7 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
             p.Add("@cedula", registro.cedula);
             p.Add("@sede", registro.sede);
             p.Add("@reporta", registro.reporta);
-            p.Add("@email", registro.email);
+            p.Add("@email", registro.correo);
             p.Add("@latitud", registro.latitud);
             p.Add("@longitud", registro.longitud);
             p.Add("@ip_address", registro.ip_address);

@@ -6,21 +6,11 @@ using RegistroAsistenciasSMART.Model.Models;
 using RegistroAsistenciasSMART.Model.Response;
 using RegistroAsistenciasSMART.Services.Interfaces.Colaboradores;
 using RegistroAsistenciasSMART.Services.Utilidades;
-using iTextSharp.text.log;
 using Microsoft.Extensions.Logging;
-using NPOI.SS.Formula.Functions;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using RegistroAsistenciasSMART.Model.Models.Colaboradores;
-using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using RegistroAsistenciasSMART.Model.DTO.Configuracion.Perfilamiento;
 using RegistroAsistenciasSMART.Model.DTO;
 using RegistroAsistenciasSMART.Services.Interfaces.Configuracion.Perfilamiento;
 
@@ -42,7 +32,6 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             "Traslado Entrada"
         };
 
-
 		public ColaboradorService
         (
             SqlConfiguration sqlConfiguration,
@@ -59,6 +48,29 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             _logger = logger;
 
             _userService = userService;
+        }
+
+        private void limpiarInfoColaborador(Colaborador colaborador)
+        {
+            colaborador.area = colaborador.area.Trim();
+            colaborador.turno = colaborador.turno.Trim();
+            colaborador.usuario_adiciono = colaborador.usuario_adiciono.Trim();
+            colaborador.cargo = colaborador.cargo.Trim();
+            colaborador.cedula = colaborador.cedula.Trim();
+            colaborador.correo = colaborador.correo.Trim();
+            colaborador.estado = colaborador.estado.Trim();
+            colaborador.sede = colaborador.sede.Trim();
+            colaborador.jefe_inmediato = colaborador.jefe_inmediato.Trim();
+            colaborador.nombres = colaborador.nombres.Trim();
+        }
+        private void limpiarInfoRegistroAsistencia(RegistroAsistencia registro)
+        {
+            registro.reporta = registro.reporta.Trim();
+            registro.hora = registro.hora.Trim();
+            registro.fecha = registro.fecha.Trim();
+            registro.correo = registro.correo.Trim();
+            registro.cedula = registro.cedula.Trim();
+            registro.sede = registro.sede.Trim();
         }
         public ResponseDTO validarColaborador(Colaborador colaborador)
         {
@@ -114,9 +126,10 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             return new ResponseDTO() { estado = "OK"};
         }
-
         public async Task<ResponseDTO> actualizarInfoColaborador(Colaborador colaborador)
         {
+            limpiarInfoColaborador(colaborador);
+
             ResponseDTO respuesta_validacion = validarColaborador(colaborador);
 
             if (!respuesta_validacion.estado.Equals("OK")) return respuesta_validacion;
@@ -130,19 +143,18 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 return new ResponseDTO() { estado = "ERROR", descripcion = "No fue posible actualizar la información del colaborador" };
             }
         }
-
         public async Task<Colaborador> consultarColaboradorByCedula(string cedula)
         {
             return await _colaboradorRepository.consultarColaboradorByCedula(cedula);
         }
-
         public async Task<IEnumerable<Colaborador>> consultarColaboradores()
         {
             return await _colaboradorRepository.consultarColaboradores();
         }
-
         public async Task<ResponseDTO> insertarInfoColaborador(Colaborador colaborador)
         {
+            limpiarInfoColaborador(colaborador);
+
             ResponseDTO respuesta_validacion = validarColaborador(colaborador);
 
             Colaborador colaborador_temp = await _colaboradorRepository.consultarColaboradorByCedula(colaborador.cedula);
@@ -163,7 +175,6 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 return new ResponseDTO() { estado = "ERROR", descripcion = "No fue posible actualizar la información del colaborador" };
             }
         }
-
         public async Task<ResponseDTO> cargueMasivoColaboradores(Archivo archivo_cargue, IProgress<CargueMasivoDTO> progress, string usuario_accion)
         {
             string rutaArchivo = "";
@@ -194,7 +205,6 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             return new ResponseDTO() { estado = "OK", descripcion = "" };
         }
-
         private async Task ejecutarCargueMasivo(string rutaArchivoCargue, IProgress<CargueMasivoDTO> progress, string total_registros, string usuario)
         {
 
@@ -202,35 +212,42 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             int contador_cargados = 0, contador_no_cargados = 0;
 
-            string observaciones = "";
+            CargueMasivoDTO cargue = new CargueMasivoDTO();
 
             try
             {
-
                 try
                 {
                     XSSFSheet HojaExcel = LibroExcel.GetSheetAt(0) as XSSFSheet;
                     if (HojaExcel.LastRowNum >= 1)
                     {
+                        string cedula = "";
+                        string nombres = "";
+                        string cargo = "";
+                        string area = "";
+                        string jefe_inmediato = "";
+                        string sede = "";
+                        string correo = "";
+                        string turno = "";
+                        string estado = "";
 
                         for (int i = 1; i <= HojaExcel.LastRowNum; i++)
                         {
-                            string cedula = "";
-                            string nombres = "";
-                            string cargo = "";
-                            string area = "";
-                            string jefe_inmediato = "";
-                            string sede = "";
-                            string correo = "";
-                            string turno = "";
-                            string estado = "";
+                            cedula = "";
+                            nombres = "";
+                            cargo = "";
+                            area = "";
+                            jefe_inmediato = "";
+                            sede = "";
+                            correo = "";
+                            turno = "";
+                            estado = "";
 
                             IRow fila = HojaExcel.GetRow(i);
 
                             try
                             {
                                 int contadorCelda = -1;
-
 
                                 #region Lectura datos excel
 
@@ -479,7 +496,6 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
                                 #endregion
 
-
                                 Colaborador colaborador = new Colaborador()
                                 {
                                     area = area,
@@ -494,49 +510,53 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                                     usuario_adiciono = usuario
                                 };
 
-                                ResponseDTO respuesta_validacion = validarColaborador(colaborador);
-
-                                if (
-                                    respuesta_validacion.estado.Equals("OK")
-                                    )
+                                try
                                 {
-                                    try
+                                    ResponseDTO respuesta_insercion = await insertarInfoColaborador(colaborador);
+
+                                    if (respuesta_insercion.estado.Equals("OK"))
                                     {
-                                        ResponseDTO respuesta_insercion = await insertarInfoColaborador(colaborador);
-
-                                        if (respuesta_insercion.estado.Equals("OK"))
-                                        {
-                                            contador_cargados++;
-                                        }
-                                        else
-                                        {
-                                            contador_no_cargados++;
-                                        }
-
-                                        progress.Report(new CargueMasivoDTO()
-                                        {
-                                            estado = "EN CARGUE",
-                                            total_registros = Int32.Parse(total_registros),
-                                            total_registros_no_procesados = contador_no_cargados,
-                                            total_registros_procesados = contador_cargados,
-                                            total_faltantes = (Int32.Parse(total_registros) - contador_cargados - contador_no_cargados)
-                                        });
-
+                                        contador_cargados++;
                                     }
-                                    catch (Exception ex)
+                                    else
                                     {
                                         contador_no_cargados++;
+
+                                        cargue.errores.Add(new DetalleErrorCargueMasivo()
+                                        {
+                                            numero_registro = i,
+                                            descripcion = respuesta_insercion.descripcion,
+                                            identificador_registro = colaborador.cedula
+                                        });
                                     }
                                 }
-                                else
+                                catch (Exception exe)
                                 {
                                     contador_no_cargados++;
+
+                                    cargue.errores.Add(new DetalleErrorCargueMasivo()
+                                    {
+                                        numero_registro = i,
+                                        descripcion = "Ocurrió un error al procesar el registro",
+                                        identificador_registro = colaborador.cedula
+                                    });
+
+                                    _logger.LogError(exe, $"Error al realizar proceso de cargue de colaboradores");
                                 }
+                                finally
+                                {
+                                    cargue.estado = "EN CARGUE";
+                                    cargue.total_registros = Int32.Parse(total_registros);
+                                    cargue.total_registros_no_procesados = contador_no_cargados;
+                                    cargue.total_registros_procesados = contador_cargados;
+                                    cargue.total_faltantes = (Int32.Parse(total_registros) - contador_cargados - contador_no_cargados);
 
+                                    progress.Report(cargue);
+                                }
                             }
-                            catch (Exception e)
+                            catch (Exception exe)
                             {
-
+                                _logger.LogError(exe, $"Error al realizar proceso de cargue de colaboradores");
                             }
                         }
                     }
@@ -545,8 +565,6 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 {
                     _logger.LogError(exe, $"Error al realizar proceso de cargue de colaboradores");
                 }
-
-                observaciones = $"Se han cargado {contador_cargados} registros exitosamente, {contador_no_cargados} no pudieron cargarse";
             }
             catch (Exception e)
             {
@@ -557,21 +575,18 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 LibroExcel.Close();
             }
 
-            progress.Report(new CargueMasivoDTO()
-            {
-                estado = "FINALIZADO",
-                total_registros = Int32.Parse(total_registros),
-                total_registros_no_procesados = contador_no_cargados,
-                total_registros_procesados = contador_cargados,
-                total_faltantes = (Int32.Parse(total_registros) - contador_cargados - contador_no_cargados)
-            });
-        }
+            cargue.estado = "FINALIZADO";
+            cargue.total_registros = Int32.Parse(total_registros);
+            cargue.total_registros_no_procesados = contador_no_cargados;
+            cargue.total_registros_procesados = contador_cargados;
+            cargue.total_faltantes = (Int32.Parse(total_registros) - contador_cargados - contador_no_cargados);
 
+            progress.Report(cargue);
+        }
         public async Task<bool> eliminarColaborador(string cedula)
         {
             return await _colaboradorRepository.eliminarColaborador(cedula);
         }
-
         private ResponseDTO validarRegistroAsistencia(RegistroAsistencia registro)
         {
             if (string.IsNullOrEmpty(registro.cedula))
@@ -621,9 +636,10 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             return new ResponseDTO() { estado = "OK"};
         }
-
 		public async Task<ResponseDTO> insertarRegistroAsistencia(RegistroAsistencia registro)
         {
+            limpiarInfoRegistroAsistencia(registro);
+
             IEnumerable<IpInfo> ips = _userService.consultarIpsAutorizados();
 
             if (!ips.Any(ip => ip.ip_address.Equals(registro.ip_address)))
@@ -650,7 +666,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 return new ResponseDTO() { estado = "ERROR", descripcion = "Tu cédula no está registrada como colaborador de SMART"};
             }
 
-            registro.email = colaborador.correo;
+            registro.correo = colaborador.correo;
 
             if( await _colaboradorRepository.insertarRegistroAsistencia(registro))
             {
@@ -672,10 +688,217 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 return new ResponseDTO() { estado = "ERROR", descripcion = "No fue posible guardar la información del registro"};
             }
         }
-
         public async Task<IEnumerable<RegistroAsistencia>> consultarRegistrosAsistencia(FiltroAsistencia filtros)
         {
             return await _colaboradorRepository.consultarRegistrosAsistencia(filtros);
+        }
+
+        public async Task<Archivo> generarReporteRegistroAsistencias(FiltroAsistencia filtros)
+        {
+            var tAsistencias = _colaboradorRepository.consultarRegistrosAsistencia(filtros);
+            var tColaboradores = _colaboradorRepository.consultarColaboradores();
+
+            await Task.WhenAll(tAsistencias, tColaboradores);
+
+            IEnumerable<RegistroAsistencia> asistencias = await tAsistencias;
+            IEnumerable<Colaborador> colaboradores = await tColaboradores;
+
+            string ruta_base = Directory.GetCurrentDirectory() + "\\Reportes";
+            if (!Directory.Exists(ruta_base)) Directory.CreateDirectory(ruta_base);
+
+            string ruta_reporte = ruta_base + $"\\ReporteAsistencias_{DateTime.Now.ToString("yyyy-MM-dd hh-mm-ss tt")}.xlsx";
+
+            IWorkbook workbook;
+            workbook = new XSSFWorkbook();
+
+            //Estilo para las celdas de encabezado
+            byte[] rgb = new byte[3] { 163, 189, 49 };
+            NPOI.XSSF.UserModel.XSSFColor color = new NPOI.XSSF.UserModel.XSSFColor(rgb);
+
+            NPOI.XSSF.UserModel.XSSFCellStyle boldStyle = (NPOI.XSSF.UserModel.XSSFCellStyle)workbook.CreateCellStyle();
+            boldStyle.SetFillForegroundColor(color);
+            boldStyle.FillPattern = FillPattern.SolidForeground;
+            boldStyle.Alignment = HorizontalAlignment.Center;
+            boldStyle.VerticalAlignment = VerticalAlignment.Center;
+            IFont font = workbook.CreateFont();
+            font.Color = NPOI.SS.UserModel.IndexedColors.White.Index;
+            boldStyle.SetFont(font);
+
+            #region Pestaña 1 - Asistencias
+
+            ISheet sheet = workbook.CreateSheet("Asistencias");
+
+            int ROW = 0;
+            int column = 0;
+
+            int cantidadColumnas = 0;
+
+            #region Encabezado
+
+            IRow encabezado = sheet.CreateRow(ROW);
+
+            ICell celda;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Fecha");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Hora");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Registro");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Sede");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Cédula");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Nombre");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Correo institucional");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Cargo");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Líder");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Subproceso");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Longitud");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Latitud");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Dirección IP");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            #endregion
+
+            foreach (var asistencia in asistencias)
+            {
+                Colaborador colaborador = colaboradores.FirstOrDefault(c => c.cedula.Equals(asistencia.cedula));
+
+                column = 0;
+                ROW++;
+                IRow fila = sheet.CreateRow(ROW);
+
+                celda = fila.CreateCell(column);
+                celda.SetCellValue(asistencia.fecha_adicion?.ToString("dd/MM/yyyy"));
+                column++;
+
+                celda = fila.CreateCell(column);
+                celda.SetCellValue(asistencia.hora);
+                column++;
+
+                celda = fila.CreateCell(column);
+                celda.SetCellValue(asistencia.reporta);
+                column++;
+
+                celda = fila.CreateCell(column);
+                celda.SetCellValue(asistencia.sede);
+                column++;
+
+                celda = fila.CreateCell(column);
+                celda.SetCellValue(asistencia.cedula);
+                column++;
+
+                celda = fila.CreateCell(column);
+                celda.SetCellValue(colaborador?.nombres);
+                column++;
+
+                celda = fila.CreateCell(column);
+                celda.SetCellValue(colaborador?.correo);
+                column++;
+
+                celda = fila.CreateCell(column);
+                celda.SetCellValue(colaborador?.cargo);
+                column++;
+
+                celda = fila.CreateCell(column);
+                celda.SetCellValue(colaborador?.jefe_inmediato);
+                column++;
+
+                celda = fila.CreateCell(column);
+                celda.SetCellValue(colaborador?.area);
+                column++;
+
+                celda = fila.CreateCell(column);
+                celda.SetCellValue(asistencia.longitud);
+                column++;
+
+                celda = fila.CreateCell(column);
+                celda.SetCellValue(asistencia.latitud);
+                column++;
+
+                celda = fila.CreateCell(column);
+                celda.SetCellValue(asistencia.ip_address);
+                column++;
+
+            }
+
+
+            for (int i = 0; i < cantidadColumnas; i++)
+            {
+                sheet.AutoSizeColumn(i);
+            }
+
+            #endregion
+
+            using (FileStream fsx = new FileStream(ruta_reporte, FileMode.Create, FileAccess.Write))
+            {
+                workbook.Write(fsx);
+            }
+            workbook.Close();
+
+            return new Archivo()
+            {
+                ruta_absoluta = ruta_reporte
+            };
         }
     }
 }
