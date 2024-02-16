@@ -1,28 +1,43 @@
 [
   {
     "ip_address": "190.217.98.138",
-    "descripcion": ""
+    "descripcion": "MPLS"
   },
   {
     "ip_address": "190.109.12.180",
-    "descripcion": ""
+    "descripcion": "Mosquera"
   },
   {
     "ip_address": "150.136.88.133",
-    "descripcion": ""
+    "descripcion": "Server pruebas"
   },
   {
-    "ip_address": "201.185.108.137",
-    "descripcion": ""
+    "ip_address": "190.131.203.128",
+    "descripcion": "La central"
   },
   {
     "ip_address": "190.131.243.44",
-    "descripcion": ""
+    "descripcion": "Contingencia sede admin"
   },
   {
-    "ip_address": "191.95.54.79",
-    "descripcion": ""
+    "ip_address": "177.8.74.188",
+    "descripcion": "Paseo villa del rio"
+  },
+  {
+    "ip_address": "186.31.37.188",
+    "descripcion": "Contingencia sede admin"
+  },
+  {
+    "ip_address": "181.53.12.194",
+    "descripcion": "Jorge Celemin"
+  },
+  {
+    "ip_address": "191.95.52.121",
+    "descripcion": "Celular leonardo"
+  },
+  {
+    "ip_address": "2800:484:117f:b700:e9c3:a7dc:7d1c:a1f3",
+    "descripcion": "Ipv6 Jorge"
   }
 
-  
 ]

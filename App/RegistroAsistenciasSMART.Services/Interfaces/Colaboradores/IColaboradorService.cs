@@ -1,5 +1,4 @@
-﻿using AppDemoBlazor.Model.Models.CargueMasivo;
-using RegistroAsistenciasSMART.Data.Repositories.Interfaces.Colaboradores;
+﻿using RegistroAsistenciasSMART.Model.DTO;
 using RegistroAsistenciasSMART.Model.Models;
 using RegistroAsistenciasSMART.Model.Models.Colaboradores;
 using RegistroAsistenciasSMART.Model.Response;

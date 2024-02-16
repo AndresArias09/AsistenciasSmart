@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AppDemoBlazor.Model.Models.CargueMasivo
+namespace RegistroAsistenciasSMART.Model.DTO
 {
     public class CargueMasivoDTO
     {
@@ -14,7 +14,7 @@ namespace AppDemoBlazor.Model.Models.CargueMasivo
         public int total_registros { get; set; } = 0;
         public int total_registros_procesados { get; set; } = 0;
         public int total_registros_no_procesados { get; set; } = 0;
-        public int total_faltantes{ get; set; } = 0;
+        public int total_faltantes { get; set; } = 0;
         public List<DetalleErrorCargueMasivo> errores { get; set; } = new List<DetalleErrorCargueMasivo>();
     }
 

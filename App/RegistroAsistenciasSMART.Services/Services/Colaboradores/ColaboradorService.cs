@@ -1,5 +1,4 @@
-﻿using AppDemoBlazor.Model.Models.CargueMasivo;
-using RegistroAsistenciasSMART.Data.Connection;
+﻿using RegistroAsistenciasSMART.Data.Connection;
 using RegistroAsistenciasSMART.Data.Repositories.Interfaces.Colaboradores;
 using RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores;
 using RegistroAsistenciasSMART.Model.Models;
@@ -13,6 +12,8 @@ using RegistroAsistenciasSMART.Model.Models.Colaboradores;
 using Microsoft.Extensions.Configuration;
 using RegistroAsistenciasSMART.Model.DTO;
 using RegistroAsistenciasSMART.Services.Interfaces.Configuracion.Perfilamiento;
+using System.Text.RegularExpressions;
+using RegistroAsistenciasSMART.Model.Constantes;
 
 namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 {
@@ -107,6 +108,11 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             if (string.IsNullOrEmpty(colaborador.correo))
             {
                 return new ResponseDTO() { estado = "ERROR", descripcion = "Debe indicar el correo del colaborador" };
+            }
+
+            if (!Regex.Match(colaborador.correo, RegexConstants.EMAIL_REGEX).Success)
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = $"Formato de correo incorrecto para el correo electrónico del colaborador" };
             }
 
             if (string.IsNullOrEmpty(colaborador.turno))
@@ -592,6 +598,11 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             if (string.IsNullOrEmpty(registro.cedula))
             {
                 return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la cédula para el registro"};
+            }
+
+            if (!Regex.Match(registro.cedula, RegexConstants.NUMBERS_ONLY_REGEX).Success)
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = $"El número de documento solo puede contener dígitos numéricos" };
             }
 
             if (string.IsNullOrEmpty(registro.fecha))

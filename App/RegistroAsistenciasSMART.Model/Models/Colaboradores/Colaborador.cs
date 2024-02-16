@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RegistroAsistenciasSMART.Data.Repositories.Interfaces.Colaboradores
+namespace RegistroAsistenciasSMART.Model.Models.Colaboradores
 {
     public class Colaborador
     {
