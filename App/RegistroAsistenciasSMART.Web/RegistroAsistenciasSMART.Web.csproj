@@ -15,6 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Formato\PlantillaColaboradores.xlsx" />
+  </ItemGroup>
+
+  <ItemGroup>
 
     <None Include="wwwroot\assetsLogin\.well-known\acme-challenge\configcheck" />
     <None Include="wwwroot\assetsLogin\.well-known\acme-challenge\web.config" />

@@ -11,10 +11,11 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Interfaces.Colaboradores
     {
         public Task<bool> insertarColaborador(Colaborador colaborador);
         public Task<bool> actualizarColaborador(Colaborador colaborador);
-        public Task<bool> eliminarColaborador(string cedula);
-        public Task<Colaborador> consultarColaboradorByCedula(string cedula);
+        public Task<bool> eliminarColaborador(long cedula);
+        public Task<Colaborador> consultarColaboradorByCedula(long cedula);
         public Task<IEnumerable<Colaborador>> consultarColaboradores();
         public Task<bool> insertarRegistroAsistencia(RegistroAsistencia registro);
-        public Task<IEnumerable<RegistroAsistencia>> consultarRegistrosAsistencia(FiltroAsistencia filtros);
+        public Task<IEnumerable<RegistroAsistenciaDTO>> consultarRegistrosAsistencia(FiltroAsistencia filtros);
+        public Task<IEnumerable<Colaborador>> consultarJefesInmediatos();
     }
 }

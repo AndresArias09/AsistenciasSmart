@@ -43,9 +43,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
         {
             _sqlConfiguration = sqlConfiguration;
 
-            string my_sql_connection = config.GetConnectionString("MySqlConnection");
-
-            _colaboradorRepository = new ColaboradorRepository(my_sql_connection);
+            _colaboradorRepository = new ColaboradorRepository(_sqlConfiguration.ConnectionString);
             _logger = logger;
 
             _userService = userService;
@@ -57,57 +55,56 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             colaborador.turno = colaborador.turno.Trim();
             colaborador.usuario_adiciono = colaborador.usuario_adiciono.Trim();
             colaborador.cargo = colaborador.cargo.Trim();
-            colaborador.cedula = colaborador.cedula.Trim();
             colaborador.correo = colaborador.correo.Trim();
-            colaborador.estado = colaborador.estado.Trim();
             colaborador.sede = colaborador.sede.Trim();
-            colaborador.jefe_inmediato = colaborador.jefe_inmediato.Trim();
             colaborador.nombres = colaborador.nombres.Trim();
+            colaborador.apellidos = colaborador.apellidos.Trim();
         }
         private void limpiarInfoRegistroAsistencia(RegistroAsistencia registro)
         {
-            registro.reporta = registro.reporta.Trim();
-            registro.hora = registro.hora.Trim();
-            registro.fecha = registro.fecha.Trim();
-            registro.correo = registro.correo.Trim();
-            registro.cedula = registro.cedula.Trim();
+            registro.tipo_reporte = registro.tipo_reporte.Trim();
             registro.sede = registro.sede.Trim();
         }
         public ResponseDTO validarColaborador(Colaborador colaborador)
         {
-            if (string.IsNullOrEmpty(colaborador.cedula))
+            if (colaborador.cedula is null)
             {
-                return new ResponseDTO() { estado= "ERROR", descripcion = "Debe indicar la cédula del colaborador"};
+                return new ResponseDTO() { estado= "ERROR", descripcion = "Debes indicar la cédula del colaborador"};
             }
 
             if (string.IsNullOrEmpty(colaborador.nombres))
             {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Debe indicar los nombres del colaborador" };
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar los nombres del colaborador" };
+            }
+
+            if (string.IsNullOrEmpty(colaborador.apellidos))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar los apellidos del colaborador" };
             }
 
             if (string.IsNullOrEmpty(colaborador.cargo))
             {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Debe indicar el cargo del colaborador" };
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el cargo del colaborador" };
             }
 
             if (string.IsNullOrEmpty(colaborador.area))
             {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Debe indicar el área del colaborador" };
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el área del colaborador" };
             }
 
-            if (string.IsNullOrEmpty(colaborador.jefe_inmediato))
+            if (colaborador.jefe_inmediato is null)
             {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Debe indicar el jefe inmediato del colaborador" };
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el jefe inmediato del colaborador" };
             }
 
             if (string.IsNullOrEmpty(colaborador.sede))
             {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Debe indicar la sede del colaborador" };
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la sede del colaborador" };
             }
 
             if (string.IsNullOrEmpty(colaborador.correo))
             {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Debe indicar el correo del colaborador" };
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el correo del colaborador" };
             }
 
             if (!Regex.Match(colaborador.correo, RegexConstants.EMAIL_REGEX).Success)
@@ -117,17 +114,17 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             if (string.IsNullOrEmpty(colaborador.turno))
             {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Debe indicar el turno del colaborador" };
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el turno del colaborador" };
             }
 
-            if (string.IsNullOrEmpty(colaborador.estado))
+            if (colaborador.estado is null)
             {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Debe indicar el estado del colaborador" };
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el estado del colaborador" };
             }
 
             if (string.IsNullOrEmpty(colaborador.usuario_adiciono))
             {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Debe indicar el usuario que adiciona al colaborador" };
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el usuario que adiciona al colaborador" };
             }
 
             return new ResponseDTO() { estado = "OK"};
@@ -149,7 +146,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 return new ResponseDTO() { estado = "ERROR", descripcion = "No fue posible actualizar la información del colaborador" };
             }
         }
-        public async Task<Colaborador> consultarColaboradorByCedula(string cedula)
+        public async Task<Colaborador> consultarColaboradorByCedula(long cedula)
         {
             return await _colaboradorRepository.consultarColaboradorByCedula(cedula);
         }
@@ -163,7 +160,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             ResponseDTO respuesta_validacion = validarColaborador(colaborador);
 
-            Colaborador colaborador_temp = await _colaboradorRepository.consultarColaboradorByCedula(colaborador.cedula);
+            Colaborador colaborador_temp = await _colaboradorRepository.consultarColaboradorByCedula(colaborador.cedula.GetValueOrDefault());
 
             if(colaborador_temp is not null)
             {
@@ -186,7 +183,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             string rutaArchivo = "";
 
             string ruta_base = Directory.GetCurrentDirectory() + "\\ArchivosCargueMasivo\\CargueColaborador";
-            if (!Directory.Exists(ruta_base)) Directory.CreateDirectory(ruta_base);
+            Directory.CreateDirectory(ruta_base);
 
             string nombre_final = "CARGUE_MASIVO_COLABORADORES_" + DateTime.Now.ToString("ddMMyyyyhhmmss") + ".xlsx";
             rutaArchivo = ruta_base + $"\\{nombre_final}";
@@ -213,7 +210,6 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
         }
         private async Task ejecutarCargueMasivo(string rutaArchivoCargue, IProgress<CargueMasivoDTO> progress, string total_registros, string usuario)
         {
-
             XSSFWorkbook LibroExcel = new XSSFWorkbook(rutaArchivoCargue);
 
             int contador_cargados = 0, contador_no_cargados = 0;
@@ -229,6 +225,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                     {
                         string cedula = "";
                         string nombres = "";
+                        string apellidos = "";
                         string cargo = "";
                         string area = "";
                         string jefe_inmediato = "";
@@ -241,6 +238,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                         {
                             cedula = "";
                             nombres = "";
+                            apellidos = "";
                             cargo = "";
                             area = "";
                             jefe_inmediato = "";
@@ -306,6 +304,33 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                                 catch (Exception exe)
                                 {
                                     if (!string.IsNullOrEmpty(nombres))
+                                    {
+
+                                    }
+                                }
+
+                                contadorCelda++; try
+                                {
+                                    ICell celda = fila.GetCell(contadorCelda);
+                                    switch (celda.CellType)
+                                    {
+                                        case CellType.String:
+                                            apellidos = fila.GetCell(contadorCelda).StringCellValue;
+                                            break;
+                                        case CellType.Numeric:
+                                            apellidos = fila.GetCell(contadorCelda).NumericCellValue.ToString();
+                                            break;
+                                        case CellType.Blank:
+                                            apellidos = "";
+                                            break;
+                                        default:
+                                            //set default
+                                            break;
+                                    }
+                                }
+                                catch (Exception exe)
+                                {
+                                    if (!string.IsNullOrEmpty(apellidos))
                                     {
 
                                     }
@@ -506,11 +531,12 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                                 {
                                     area = area,
                                     cargo = cargo,
-                                    cedula = cedula,
+                                    cedula = long.Parse(cedula),
                                     correo = correo,
-                                    estado = estado,
-                                    jefe_inmediato = jefe_inmediato,
+                                    estado = long.Parse(estado),
+                                    jefe_inmediato = long.Parse(jefe_inmediato),
                                     nombres = nombres,
+                                    apellidos = apellidos,
                                     sede = sede,
                                     turno = turno,
                                     usuario_adiciono = usuario
@@ -532,7 +558,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                                         {
                                             numero_registro = i,
                                             descripcion = respuesta_insercion.descripcion,
-                                            identificador_registro = colaborador.cedula
+                                            identificador_registro = colaborador.cedula.ToString()
                                         });
                                     }
                                 }
@@ -544,7 +570,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                                     {
                                         numero_registro = i,
                                         descripcion = "Ocurrió un error al procesar el registro",
-                                        identificador_registro = colaborador.cedula
+                                        identificador_registro = colaborador.cedula.ToString()
                                     });
 
                                     _logger.LogError(exe, $"Error al realizar proceso de cargue de colaboradores");
@@ -589,38 +615,23 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             progress.Report(cargue);
         }
-        public async Task<bool> eliminarColaborador(string cedula)
+        public async Task<bool> eliminarColaborador(long cedula)
         {
             return await _colaboradorRepository.eliminarColaborador(cedula);
         }
         private ResponseDTO validarRegistroAsistencia(RegistroAsistencia registro)
         {
-            if (string.IsNullOrEmpty(registro.cedula))
+            if (registro.cedula_colaborador is null)
             {
                 return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la cédula para el registro"};
             }
 
-            if (!Regex.Match(registro.cedula, RegexConstants.NUMBERS_ONLY_REGEX).Success)
-            {
-                return new ResponseDTO() { estado = "ERROR", descripcion = $"El número de documento solo puede contener dígitos numéricos" };
-            }
-
-            if (string.IsNullOrEmpty(registro.fecha))
-            {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la fecha para el registro" };
-            }
-
-            if (string.IsNullOrEmpty(registro.hora))
-            {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la hora para el registro" };
-            }
-
-            if (string.IsNullOrEmpty(registro.reporta))
+            if (string.IsNullOrEmpty(registro.tipo_reporte)
             {
                 return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el tipo de reporte para el registro" };
             }
 
-            if (!tipo_reporte.Contains(registro.reporta))
+            if (!tipo_reporte.Contains(registro.tipo_reporte))
             {
                 return new ResponseDTO() { estado = "ERROR", descripcion = "Tipo de registro no válido" };
             }
@@ -658,11 +669,6 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 return new ResponseDTO() { estado = "ERROR", descripcion = "No te encuentras dentro de la red SMART"};
             }
 
-            DateTime fecha_actual = DateTime.Now;
-
-            registro.fecha = fecha_actual.ToString("yyyy-MM-dd");
-            registro.hora = fecha_actual.ToString("HH:mm:ss");
-
             ResponseDTO respuesta_validacion = validarRegistroAsistencia(registro);
 
             if (!respuesta_validacion.estado.Equals("OK"))
@@ -670,24 +676,23 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 return respuesta_validacion;
             }
 
-            Colaborador colaborador = await _colaboradorRepository.consultarColaboradorByCedula(registro.cedula);
+            Colaborador colaborador = await _colaboradorRepository.consultarColaboradorByCedula(registro.cedula_colaborador.GetValueOrDefault());
 
             if(colaborador is null)
             {
                 return new ResponseDTO() { estado = "ERROR", descripcion = "Tu cédula no está registrada como colaborador de SMART"};
             }
 
-            registro.correo = colaborador.correo;
 
             if( await _colaboradorRepository.insertarRegistroAsistencia(registro))
             {
                 string saludo = "Bienvenido";
 
-                if (registro.reporta.ToLower().Contains("entrada"))
+                if (registro.tipo_reporte.ToLower().Contains("entrada"))
                 {
                     saludo = "Bienvenido/a,";
                 }
-                else if(registro.reporta.ToLower().Contains("salida"))
+                else if(registro.tipo_reporte.ToLower().Contains("salida"))
                 {
                     saludo = "Que tengas un buen día,";
                 }
@@ -699,20 +704,15 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 return new ResponseDTO() { estado = "ERROR", descripcion = "No fue posible guardar la información del registro"};
             }
         }
-        public async Task<IEnumerable<RegistroAsistencia>> consultarRegistrosAsistencia(FiltroAsistencia filtros)
+        public async Task<IEnumerable<RegistroAsistenciaDTO>> consultarRegistrosAsistencia(FiltroAsistencia filtros)
         {
             return await _colaboradorRepository.consultarRegistrosAsistencia(filtros);
         }
 
         public async Task<Archivo> generarReporteRegistroAsistencias(FiltroAsistencia filtros)
         {
-            var tAsistencias = _colaboradorRepository.consultarRegistrosAsistencia(filtros);
-            var tColaboradores = _colaboradorRepository.consultarColaboradores();
 
-            await Task.WhenAll(tAsistencias, tColaboradores);
-
-            IEnumerable<RegistroAsistencia> asistencias = await tAsistencias;
-            IEnumerable<Colaborador> colaboradores = await tColaboradores;
+            IEnumerable<RegistroAsistenciaDTO> asistencias = await consultarRegistrosAsistencia(filtros);
 
             string ruta_base = Directory.GetCurrentDirectory() + "\\Reportes";
             if (!Directory.Exists(ruta_base)) Directory.CreateDirectory(ruta_base);
@@ -781,7 +781,13 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             cantidadColumnas++;
 
             celda = encabezado.CreateCell(column);
-            celda.SetCellValue("Nombre");
+            celda.SetCellValue("Nombres");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Apellidos");
             celda.CellStyle = boldStyle;
             column++;
             cantidadColumnas++;
@@ -832,8 +838,6 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             foreach (var asistencia in asistencias)
             {
-                Colaborador colaborador = colaboradores.FirstOrDefault(c => c.cedula.Equals(asistencia.cedula));
-
                 column = 0;
                 ROW++;
                 IRow fila = sheet.CreateRow(ROW);
@@ -843,11 +847,11 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 column++;
 
                 celda = fila.CreateCell(column);
-                celda.SetCellValue(asistencia.hora);
+                celda.SetCellValue(asistencia.fecha_adicion?.ToString("HH:mm tt"));
                 column++;
 
                 celda = fila.CreateCell(column);
-                celda.SetCellValue(asistencia.reporta);
+                celda.SetCellValue(asistencia.tipo_reporte);
                 column++;
 
                 celda = fila.CreateCell(column);
@@ -859,23 +863,23 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 column++;
 
                 celda = fila.CreateCell(column);
-                celda.SetCellValue(colaborador?.nombres);
+                celda.SetCellValue(asistencia.nombres);
                 column++;
 
                 celda = fila.CreateCell(column);
-                celda.SetCellValue(colaborador?.correo);
+                celda.SetCellValue(asistencia.correo);
                 column++;
 
                 celda = fila.CreateCell(column);
-                celda.SetCellValue(colaborador?.cargo);
+                celda.SetCellValue(asistencia.cargo);
                 column++;
 
                 celda = fila.CreateCell(column);
-                celda.SetCellValue(colaborador?.jefe_inmediato);
+                celda.SetCellValue(asistencia.jefe_inmediato);
                 column++;
 
                 celda = fila.CreateCell(column);
-                celda.SetCellValue(colaborador?.area);
+                celda.SetCellValue(asistencia.area);
                 column++;
 
                 celda = fila.CreateCell(column);
@@ -910,6 +914,11 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             {
                 ruta_absoluta = ruta_reporte
             };
+        }
+
+        public async Task<IEnumerable<Colaborador>> consultarJefesInmediatos()
+        {
+            return await _colaboradorRepository.consultarJefesInmediatos();
         }
     }
 }
