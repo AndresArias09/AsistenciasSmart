@@ -16,9 +16,12 @@ namespace RegistroAsistenciasSMART.Model.Models.Colaboradores
         public long? jefe_inmediato { get; set; }
         public string sede { get; set; } = "";
         public string correo { get; set; } = "";
-        public string turno { get; set; } = "";
         public long? estado { get; set; }
         public string usuario_adiciono { get; set; } = "";
         public DateTime fecha_adicion { get; set; }
+        public TimeSpan hora_entrada_lv { get; set; }
+        public TimeSpan hora_salida_lv { get; set; }
+        public TimeSpan hora_entrada_s { get; set; }
+        public TimeSpan hora_salida_s { get; set; }
     }
 }
