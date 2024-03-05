@@ -129,7 +129,7 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="Colaborador" Property="area" Title="Área" Type="typeof(IEnumerable<string>)" FilterValue="@selectedAreaIds" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
                         <FilterTemplate>
-                            <RadzenDropDown AllowFiltering="true" SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedAreaIds Style="width:100%;"
+                            <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"  SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedAreaIds Style="width:100%;"
                                             Change=@OnselectedAreaIdsChange Data="@(areas)" AllowClear="true" Multiple="true" />
                         </FilterTemplate>
                         <EditTemplate Context="colaborador">
@@ -141,7 +141,7 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="Colaborador" Property="jefe_inmediato" Title="Jefe Inmediato" Type="typeof(IEnumerable<long?>)" FilterValue="@selectedJefeIds" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
                         <FilterTemplate>
-                            <RadzenDropDown AllowFiltering="true" TValue="IEnumerable<long?>" SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedJefeIds Style="width:100%;"
+                            <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" TValue="IEnumerable<long?>" SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedJefeIds Style="width:100%;"
                                             Change=@OnselectedJefeIdsChange Data="@(jefes)" AllowClear="true" ValueProperty="cedula" Multiple="true" >
                                 <Template Context="jefe">
                                     @jefe.nombres @jefe.apellidos
@@ -149,7 +149,7 @@
                             </RadzenDropDown>
                         </FilterTemplate>
                         <EditTemplate Context="colaborador">
-                            <RadzenDropDown AllowFiltering="true" @bind-Value=@colaborador.jefe_inmediato TValue="long?" Data="@(colaboradores)" ValueProperty="cedula" AllowClear="true" Style="width: 100%">
+                            <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value=@colaborador.jefe_inmediato TValue="long?" Data="@(colaboradores)" ValueProperty="cedula" AllowClear="true" Style="width: 100%">
                                 <Template>
                                     @context.nombres @context.apellidos
                                 </Template>
@@ -167,7 +167,7 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="Colaborador" Property="sede" Title="Sede" Type="typeof(IEnumerable<string>)" FilterValue="@selectedSedeIds" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
                         <FilterTemplate>
-                            <RadzenDropDown AllowFiltering="true" SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedSedeIds Style="width:100%;"
+                            <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedSedeIds Style="width:100%;"
                                             Change=@OnselectedSedeIdsChange Data="@(sedes)" AllowClear="true" Multiple="true" >
                                 
                             </RadzenDropDown>
@@ -191,7 +191,7 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="Colaborador" Property="estado" Title="Estado" Type="typeof(IEnumerable<long?>)" FilterValue="@selectedEstadoIds" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
                         <FilterTemplate>
-                            <RadzenDropDown AllowFiltering="true" TValue="IEnumerable<long?>" SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedEstadoIds Style="width:100%;"
+                            <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" TValue="IEnumerable<long?>" SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedEstadoIds Style="width:100%;"
                                             Change=@OnselectedEstadoIdsChange Data="@(estados)" AllowClear="true" ValueProperty="id_estado" TextProperty="descripcion" Multiple="true" />
                         </FilterTemplate>
                         <EditTemplate Context="colaborador">
@@ -312,22 +312,22 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Área</label>
-                    <RadzenDropDown AllowFiltering="true" @bind-Value=@filtros.area TValue="string" Data="@(areas)" AllowClear="true" Style="width: 100%">
+                    <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value=@filtros.area TValue="string" Data="@(areas)" AllowClear="true" Style="width: 100%">
                     </RadzenDropDown>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Sede</label>
-                    <RadzenDropDown AllowFiltering="true" @bind-Value=@filtros.sede TValue="string" Data="@(sedes)" AllowClear="true" Style="width: 100%">
+                    <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value=@filtros.sede TValue="string" Data="@(sedes)" AllowClear="true" Style="width: 100%">
                     </RadzenDropDown>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Tipo de reporte</label>
-                    <RadzenDropDown AllowFiltering="true" @bind-Value=@filtros.tipo_reporte TValue="string" Data="@(tipos_registro)" AllowClear="true" Style="width: 100%">
+                    <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value=@filtros.tipo_reporte TValue="string" Data="@(tipos_registro)" AllowClear="true" Style="width: 100%">
                     </RadzenDropDown>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Jefe inmediato</label>
-                    <RadzenDropDown AllowFiltering="true" @bind-Value=@filtros.jefe_inmediato TValue="long?" Data="@(jefes)" ValueProperty="cedula" AllowClear="true" Style="width: 100%">
+                    <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value=@filtros.jefe_inmediato TValue="long?" Data="@(jefes)" ValueProperty="cedula" LoadData="@LoadDataJefes" AllowClear="true" Style="width: 100%">
                         <Template>
                             @context.nombres @context.apellidos
                         </Template>
@@ -1046,5 +1046,12 @@
             _logger.LogError(exe, "Error al consultar ubicación en maps");
             await _jsRuntime.SweetAlertUsual("Error", "Error al consultar información", TipoMensajeSweetAlert.error);
         }
+    }
+
+    async Task LoadDataJefes(LoadDataArgs args)
+    {
+        jefes = await _colaboradorService.consultarJefesInmediatos();
+
+        jefes = jefes.Where(j => j.nombres.ToLower().Contains(args.Filter.ToLower()) || j.apellidos.ToLower().Contains(args.Filter.ToLower()));
     }
 }
