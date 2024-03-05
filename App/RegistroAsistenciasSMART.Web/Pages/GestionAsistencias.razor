@@ -805,6 +805,7 @@
                 return;
             }
 
+            colaborador.fecha_adicion = DateTime.Now;
             List<Colaborador> colaboradores_temporal = colaboradores.ToList();
             colaboradores_temporal.Add(colaborador);
             colaboradores = colaboradores_temporal.ToList();
