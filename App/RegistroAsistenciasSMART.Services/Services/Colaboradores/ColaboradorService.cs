@@ -834,7 +834,9 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             if (registro.tipo_reporte.Equals("Entrada"))
             {
-                if (hora_registro > hora)
+                DateTime hora_maxima_llegada = DateTime.Now.Date.Add(hora.GetValueOrDefault()).AddMinutes(5);
+
+                if (hora_registro > hora_maxima_llegada.TimeOfDay)
                 {
                     return "red";
                 }

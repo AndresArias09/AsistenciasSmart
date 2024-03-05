@@ -15,7 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Formato\PlantillaColaboradores.xlsx" />
+    <Content Include="Formato\PlantillaColaboradores.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -443,6 +445,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Formato\PlantillaEjemplo.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="RSAKeys\private_key.pem">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
