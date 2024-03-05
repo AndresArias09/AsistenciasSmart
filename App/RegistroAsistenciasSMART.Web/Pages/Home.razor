@@ -1,743 +1,124 @@
-﻿@page "/Home"
+﻿@attribute [PageInfo(perfilable = false)]
 
+@page "/Home"
 
-@using RegistroAsistenciasSMART.Data.Repositories.Interfaces.Colaboradores
-@using RegistroAsistenciasSMART.Model.DTO
-@using RegistroAsistenciasSMART.Model.Models
-@using RegistroAsistenciasSMART.Model.Models.Colaboradores
-@using RegistroAsistenciasSMART.Services.Interfaces.Colaboradores
-@using System.Globalization
+@using RegistroAsistenciasSMART.Model.Models.Configuracion.Perfilamiento
+@using RegistroAsistenciasSMART.Services.Interfaces.Configuracion.Perfilamiento
 
-@inject IColaboradorService _colaboradorService
+@inject IUserService _userService
 @inject ILogger<Home> _logger
 
-<div class="row">
-    <div class="card">
-        <div class="card-header">
-            <h6 class="mb-0">Filtros</h6>
-        </div>
+@if (_isLoading)
+{
+	<_Loading></_Loading>
+}
+else
+{
+	<div class="cont">
+		<img style="width:100%" src="assetsMainSite/imagesHome/bg.png" />
+		<div class="top-left">
+			<h1>Bienvenido/a @nombre_usuario</h1>
+			<h5>¿Qué harás hoy?</h5>
+		</div>
+	</div>
 
-        <div class="card-body">
-            <div class="col-md-12">
-                <input class="form-control" type="text" @bind="filtro" placeholder="Filtra por nombres, apellidos, correo..." @bind:event="onchange" @bind:after="Filtrar" />
-            </div>
-        </div>
-    </div>
 
-</div>
+	<div class="row row-cards">
+		@* GESTIÓN DE ASISTENCIAS *@
+		<ModuleAuthorizationView id_modulo="5">
+			<Authorize>
+				<div class="col">
+					<a href="/GestionAsistencias">
+						<div class="card">
+							<div class="card-img-actions mx-1 ">
+								<img src="assetsMainSite/imagesHome/perfilamiento.png">
 
-<div class="row">
-    <div class="card">
-        <div class="card-header">
-            <h6 class="mb-0">Colaboradores</h6>
-        </div>
+							</div>
 
-        <div class="card-body">
-            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Agregar nuevo colaborador" Click="@InsertRow" Disabled=@(colaboradorToInsert != null || colaboradorToUpdate != null) />
-            <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="add_circle_outline" class="mt-2 mb-4" Text="Cargar colaboradores masivamente" Click=@(() => _modalCargueMasivo.abrirModal()) />
-            <button type="button" class="btn btn-primary" @onclick="LoadData" style="float: right">Actualizar</button>
-            <RadzenDataGridApp 
-                AllowVirtualization="false"
-                @ref="colaboradoresGrid"
-                Data="@colaboradores_temp"
-                TItem="Colaborador"
-                IsLoading="@_isLoadingColaboradores"
-                EditMode="DataGridEditMode.Single"
-                RowUpdate="@OnUpdateRow"
-                RowCreate="@OnCreateRow"
-                Sort="@Reset"
-                Page="@Reset"
-                Filter="@Reset">
-                <Columns>
-                    <RadzenDataGridColumn TItem="Colaborador" Frozen="true" Context="Colaborador" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="200px">
-                        <Template Context="colaborador">
-                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(colaborador))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                            <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="delete" Class="m-1" Click=@(() => EliminarColaborador(colaborador)) Text="" />
-                        </Template>
-                        <EditTemplate Context="colaborador">
-                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(colaborador))">
-                            </RadzenButton>
-                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(colaborador))">
-                            </RadzenButton>
-                            <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="delete" Class="m-1" Click=@(() => EliminarColaborador(colaborador)) Text="" />
-                        </EditTemplate>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="fecha_adicion" Title="Fecha de Adición">
-                        <EditTemplate Context="colaborador">
-                            <div style="text-align:center">
-                                @("-")
-                            </div>
-                        </EditTemplate>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Frozen="true" Property="cedula" Title="Cédula">
-                        <EditTemplate Context="colaborador">
-                            @if (colaboradorToUpdate is null)
-                            {
-                                <input type="text" class="form-control" @bind-value="colaborador.cedula" />
-                            }
-                            else
-                            {
-                                @colaborador.cedula
-                            }
-                        </EditTemplate>
-                        <Template Context="colaborador">
-                            @colaborador.cedula
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="nombres" Title="Nombres">
-                        <EditTemplate Context="colaborador">
-                            <input type="text" class="form-control" @bind-value="colaborador.nombres" />
-                        </EditTemplate>
-                        <Template Context="colaborador">
-                            @colaborador.nombres
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="cargo" Title="Cargo">
-                        <EditTemplate Context="colaborador">
-                            <input type="text" class="form-control" @bind-value="colaborador.cargo" />
-                        </EditTemplate>
-                        <Template Context="colaborador">
-                            @colaborador.cargo
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="area" Title="Área">
-                        <EditTemplate Context="colaborador">
-                            <input type="text" class="form-control" @bind-value="colaborador.area" />
-                        </EditTemplate>
-                        <Template Context="colaborador">
-                            @colaborador.area
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="jefe_inmediato" Title="Jefe Inmediato">
-                        <EditTemplate Context="colaborador">
-                            <RadzenAutoComplete @bind-Value=@colaborador.jefe_inmediato FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@jefes>
-                            </RadzenAutoComplete>
-                        </EditTemplate>
-                        <Template Context="colaborador">
-                            @colaborador.jefe_inmediato
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="sede" Title="Sede">
-                        <EditTemplate Context="colaborador">
-                            <RadzenAutoComplete @bind-Value=@colaborador.sede FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@sedes>
-                            </RadzenAutoComplete>
-                        </EditTemplate>
-                        <Template Context="colaborador">
-                            @colaborador.sede
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="correo" Title="Correo">
-                        <EditTemplate Context="colaborador">
-                            <input type="email" class="form-control" @bind-value="colaborador.correo" />
-                        </EditTemplate>
-                        <Template Context="colaborador">
-                            @colaborador.correo
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="turno" Title="Turno">
-                        <EditTemplate Context="colaborador">
-                            <input type="text" class="form-control" @bind-value="colaborador.turno" />
-                        </EditTemplate>
-                        <Template Context="colaborador">
-                            @colaborador.turno
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="estado" Title="Estado">
-                        <EditTemplate Context="colaborador">
-                            <input type="text" class="form-control" @bind-value="colaborador.estado" />
-                        </EditTemplate>
-                        <Template Context="colaborador">
-                            @colaborador.estado
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="usuario_adiciono" Title="Usuario que adicionó">
-                        <EditTemplate Context="colaborador">
-                            @colaborador.usuario_adiciono
-                        </EditTemplate>
-                        <Template Context="colaborador">
-                            @colaborador.usuario_adiciono
-                        </Template>
-                    </RadzenDataGridColumn>
-                </Columns>
-            </RadzenDataGridApp>
-        </div>
-    </div>
+							<div class="card-body">
+								<div class="d-flex align-items-start flex-nowrap">
+									<div>
+										<h6 class="fw-semibold me-2">Gestión de Asistencias</h6>
+										<span>Gestiona colaboradores y asistencias</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</a>
 
-</div>
+				</div>
+			</Authorize>
+			<NotAuthorize>
 
-<div class="row">
-    <div class="card">
-        <div class="card-header">
-            <h6 class="mb-0">Filtros</h6>
-        </div>
+			</NotAuthorize>
+		</ModuleAuthorizationView>
+		@* PERFILAMIENTO *@
+		<ModuleAuthorizationView id_modulo="1">
+			<Authorize>
+				<div class="col">
+					<a href="/Perfilamiento">
+						<div class="card">
+							<div class="card-img-actions mx-1 ">
+								<img src="assetsMainSite/imagesHome/perfilamiento.png">
 
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4">
-                    <label class="form-label">Fecha desde</label>
-                    <input class="form-control" type="date"  @bind-value="filtros.fecha_desde"/>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Fecha hasta</label>
-                    <input class="form-control" type="date" @bind-value="filtros.fecha_hasta" />
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Cédula</label>
-                    <input class="form-control" type="text" @bind-value="filtros.cedula"/>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Nombres</label>
-                    <input class="form-control" type="text" @bind-value="filtros.nombres" />
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Cargo</label>
-                    <input class="form-control" type="text" @bind-value="filtros.cargo" />
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Área</label>
-                    <input class="form-control" type="text" @bind-value="filtros.area" />
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Sede</label>
-                    <input class="form-control" type="text" @bind-value="filtros.sede" />
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Tipo de reporte</label>
-                    <input class="form-control" type="text" @bind-value="filtros.reporta" />
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Jefe inmediato</label>
-                    <input class="form-control" type="text" @bind-value="filtros.jefe_inmediato" />
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Correo electrónico</label>
-                    <input class="form-control" type="text" @bind-value="filtros.correo" />
-                </div>
-            </div>
-            <br />
-            <button class="btn btn-primary" @onclick="LoadDataRegistrosAsistencias">Buscar</button>
-            <button class="btn btn-secondary" @onclick=@(() => filtros = new FiltroAsistencia())>Limpiar</button>
-        </div>
-    </div>
+							</div>
 
-</div>
+							<div class="card-body">
+								<div class="d-flex align-items-start flex-nowrap">
+									<div>
+										<h6 class="fw-semibold me-2">Perfilamiento</h6>
+										<span>Roles y usuarios</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</a>
 
-<div class="row">
-    <div class="card">
-        <div class="card-header">
-            <h6 class="mb-0">Registro de Asistencia</h6>
-        </div>
+				</div>
+			</Authorize>
+			<NotAuthorize>
 
-        <div class="card-body">
-            <button class="btn btn-primary mb-3" @onclick="DescargarExcelAsistencias" >Reporte excel</button>
-            <RadzenDataGridApp ExpandMode="DataGridExpandMode.Multiple"
-                               Data="registros_asistencias_temp"
-                               TItem="RegistroAsistencia"
-                               IsLoading=@_isLoadingRegistrosAsistencia>
-                <Columns>
-                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="fecha_adicion" Title="Fecha">
-                        <Template Context="data">
-                            @(Convert.ToDateTime(data.fecha_adicion).ToString("dddd, dd MMMM yyyy",new CultureInfo("es-ES")))
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="fecha_adicion" Title="Hora">
-                        <Template Context="data">
-                            @(Convert.ToDateTime(data.fecha_adicion).ToString("hh:mm tt"))
-                        </Template>
-                    </RadzenDataGridColumn>
-                    
-                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="reporta" Title="Registro"></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="sede" Title="Sede"></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="cedula" Title="Cédula"></RadzenDataGridColumn>
-                    
-                    <RadzenDataGridColumn TItem="RegistroAsistencia"  Title="Nombre">
-                        <Template Context="data">
-                            @(colaboradores.FirstOrDefault(c => c.cedula.Equals(data.cedula))?.nombres)
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="" Title="Correo institucional">
-                        <Template Context="data">
-                            @(colaboradores.FirstOrDefault(c => c.cedula.Equals(data.cedula))?.correo)
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistencia" Title="Cargo">
-                        <Template Context="data">
-                            @(colaboradores.FirstOrDefault(c => c.cedula.Equals(data.cedula))?.cargo)
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistencia" Title="Líder">
-                        <Template Context="data">
-                            @(colaboradores.FirstOrDefault(c => c.cedula.Equals(data.cedula))?.jefe_inmediato)
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistencia" Title="Subproceso">
-                        <Template Context="data">
-                            @(colaboradores.FirstOrDefault(c => c.cedula.Equals(data.cedula))?.area)
-                        </Template>
-                    </RadzenDataGridColumn>
+			</NotAuthorize>
+		</ModuleAuthorizationView>
 
-                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="longitud" Title="Longitud"></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="latitud" Title="Latitud"></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistencia" Property="ip_address" Title="Dirección IP"></RadzenDataGridColumn>
-                </Columns>
-            </RadzenDataGridApp>
-        </div>
-    </div>
+	</div>
 
-</div>
-
-<!-- Modal cargue masivo progress-->
-<_ModalComponent @ref="_modalCargueMasivoProgress"
-                 _isLoading=@false
-                 titulo="Cargue Masivo"
-                 eventoAceptar=@(() => _modalCargueMasivoProgress.cerrarModal())
-                 width="1200">
-    <CuerpoModal>
-        <div class="row">
-            <div class="col-xl-3 col-sm-6">
-                <div class="card mini-stat bg-primary">
-                    <div class="card-body mini-stat-img">
-                        <div class="mini-stat-icon">
-                            <i class="mdi mdi-cube-outline float-end"></i>
-                        </div>
-                        <div class="text-white">
-                            <h6 class="text-uppercase mb-3 font-size-16 text-white">TOTAL REGISTROS</h6>
-                            <h2 class="mb-4 text-white">@datos_cargue_masivo.total_registros</h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-sm-6">
-                <div class="card mini-stat bg-primary">
-                    <div class="card-body mini-stat-img">
-                        <div class="mini-stat-icon">
-                            <i class="mdi mdi-buffer float-end"></i>
-                        </div>
-                        <div class="text-white">
-                            <h6 class="text-uppercase mb-3 font-size-16 text-white">REGISTROS CARGADOS</h6>
-                            <h2 class="mb-4 text-white">@datos_cargue_masivo.total_registros_procesados</h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-sm-6">
-                <div class="card mini-stat bg-primary">
-                    <div class="card-body mini-stat-img">
-                        <div class="mini-stat-icon">
-                            <i class="mdi mdi-tag-text-outline float-end"></i>
-                        </div>
-                        <div class="text-white">
-                            <h6 class="text-uppercase mb-3 font-size-16 text-white">REGISTROS NO CARGADOS</h6>
-                            <h2 class="mb-4 text-white">@datos_cargue_masivo.total_registros_no_procesados</h2>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-sm-6">
-                <div class="card mini-stat bg-primary">
-                    <div class="card-body mini-stat-img">
-                        <div class="mini-stat-icon">
-                            <i class="mdi mdi-tag-text-outline float-end"></i>
-                        </div>
-                        <div class="text-white">
-                            <h6 class="text-uppercase mb-3 font-size-16 text-white">REGISTROS FALTANTES</h6>
-                            <h2 class="mb-4 text-white">@datos_cargue_masivo.total_faltantes</h2>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-12 col-sm-6">
-                <div class="card mini-stat bg-primary">
-                    <div class="card-body mini-stat-img">
-                        <div class="mini-stat-icon">
-                            <i class="mdi mdi-briefcase-check float-end"></i>
-                        </div>
-                        <div class="text-white">
-                            <h6 class="text-uppercase mb-3 font-size-16 text-white">ESTADO DEL CARGUE</h6>
-                            <h2 class="mb-4 text-white">@datos_cargue_masivo.estado</h2>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <h4>Errores presentados en el archivo:</h4>
-            @foreach(var error in datos_cargue_masivo.errores)
-            {
-                <div class="alert alert-danger" role="alert">
-                    Registro #@(error.numero_registro) (@error.identificador_registro) : @error.descripcion
-                </div>
-            }
-        </div>
-    </CuerpoModal>
-</_ModalComponent>
-
-<!-- Modal cargue masivo-->
-<_ModalComponent @ref="_modalCargueMasivo"
-                 _isLoading=@false
-                 titulo="Cargue Masivo"
-                 eventoAceptar=@CargueMasivoColaboradores
-                 width="700">
-    <CuerpoModal>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="form-group">
-                    <InputFile id="fuFile" OnChange="OnInputFileChange" accept=".xlsx" />
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    <button type="button" @onclick="DescargarPlantilla" class="btn btn-primary">Descargar Plantilla</button>
-                </div>
-            </div>
-        </div>
-    </CuerpoModal>
-</_ModalComponent>
+	<!-- /image grid -->
+}
 
 
 @code {
-    private string filtro = "";
-
-    private FiltroAsistencia filtros = new FiltroAsistencia();
-
-
-    private bool _isLoadingColaboradores = true;
-    private bool _isLoadingRegistrosAsistencia = false;
-
-    IEnumerable<Colaborador> colaboradores;
-    IEnumerable<Colaborador> colaboradores_temp;
-
-    IEnumerable<RegistroAsistencia> registros_asistencias;
-    IEnumerable<RegistroAsistencia> registros_asistencias_temp;
-
-    RadzenDataGrid<Colaborador> colaboradoresGrid;
-
-    Colaborador colaboradorToInsert;
-    Colaborador colaboradorToUpdate;
-
-    private IEnumerable<string> jefes = new List<string>();
-    private IEnumerable<string> sedes = new List<string>();
-
-    IReadOnlyList<IBrowserFile> selectedFiles;
-
-    private _ModalComponent _modalCargueMasivo;
-    private _ModalComponent _modalCargueMasivoProgress;
-
-    //Progress
-    private CargueMasivoDTO datos_cargue_masivo = new CargueMasivoDTO();
-
-    [CascadingParameter]
-    protected UserSession? userSession { get; set; }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        try
-        {
-            if (firstRender)
-            {
-                await LoadData();
-            }
-        }
-        catch (Exception exe)
-        {
-            _logger.LogError(exe, "Error al consultar información");
-            await _jsRuntime.SweetAlertUsual("Error", "Error al consultar información", TipoMensajeSweetAlert.error);
-        }
-    }
-
-    private async Task LoadDataColaboradores()
-    {
-        _isLoadingColaboradores = true;
-        StateHasChanged();
-
-        await Task.Yield();
-
-        colaboradores = await _colaboradorService.consultarColaboradores();
-        colaboradores_temp = colaboradores;
-        jefes = colaboradores.DistinctBy(c => c.jefe_inmediato).Select(c => c.jefe_inmediato);
-        sedes = colaboradores.DistinctBy(c => c.sede).Select(c => c.sede);
-
-        _isLoadingColaboradores = false;
-        StateHasChanged();
-    }
-
-    private async Task LoadDataRegistrosAsistencias()
-    {
-        _isLoadingRegistrosAsistencia = true;
-        StateHasChanged();
-
-        await Task.Yield();
-
-        registros_asistencias = await _colaboradorService.consultarRegistrosAsistencia(filtros);
-        registros_asistencias_temp = registros_asistencias;
-
-        _isLoadingRegistrosAsistencia = false;
-        StateHasChanged();
-    }
-
-    private async Task LoadData()
-    {
-        await LoadDataColaboradores();
-        // await LoadDataRegistrosAsistencias();
-
-        await Filtrar();
-    }
-
-
-    private async Task Filtrar()
-    {
-        try
-        {
-            await Task.Yield();
-
-            if (string.IsNullOrEmpty(filtro))
-            {
-                colaboradores_temp = colaboradores;
-                return;
-            }
-
-            colaboradores_temp = colaboradores.Where
-            (
-                c =>
-
-                c.cedula.ToLower().Contains(filtro.ToLower()) ||
-                c.nombres.ToLower().Contains(filtro.ToLower()) ||
-                c.cargo.ToLower().Contains(filtro.ToLower()) ||
-                c.area.ToLower().Contains(filtro.ToLower()) ||
-                c.jefe_inmediato.ToLower().Contains(filtro.ToLower()) ||
-                c.sede.ToLower().Contains(filtro.ToLower()) ||
-                c.correo.ToLower().Contains(filtro.ToLower()) ||
-                c.turno.ToLower().Contains(filtro.ToLower())
-
-            );
-
-        }
-        catch (Exception exe)
-        {
-            _logger.LogError(exe, "Error al realizar filtro");
-        }
-    }
-
-    private async Task EliminarColaborador(Colaborador colaborador)
-    {
-        try
-        {
-            if(await _jsRuntime.SweetAlertConfirm("Eliminar colaborador", "¿Está seguro de eliminar este colaboradorador?",TipoMensajeSweetAlert.question))
-            {
-                if(await _colaboradorService.eliminarColaborador(colaborador.cedula))
-                {
-                    List<Colaborador> colaboradores_temp = this.colaboradores.ToList();
-                    colaboradores_temp.Remove(colaborador);
-                    this.colaboradores = colaboradores_temp;
-                    await Filtrar();
-
-                    await _jsRuntime.InvokeVoidAsync("successToastr", "Colaborador eliminado correctamente");
-                }
-                else
-                {
-                    await _jsRuntime.SweetAlertUsual("Error", "No fue posible eliminar este colaborador", TipoMensajeSweetAlert.error);
-                }
-            }
-        }
-        catch(Exception exe)
-        {
-            _logger.LogError(exe,"Error al eliminar colaborador");
-            await _jsRuntime.SweetAlertUsual("Error", "Ocurrió un error al realizar esta operacion", TipoMensajeSweetAlert.error);
-        }
-    }
-
-    void Reset()
-    {
-        colaboradorToInsert = null;
-        colaboradorToUpdate = null;
-    }
-
-
-    async Task EditRow(Colaborador colaborador)
-    {
-        colaboradorToUpdate = colaborador;
-        await colaboradoresGrid.EditRow(colaborador);
-    }
-
-    private async Task OnUpdateRow(Colaborador colaborador)
-    {
-        try
-        {
-            if (colaborador == colaboradorToInsert)
-            {
-                colaboradorToInsert = null;
-            }
-
-            colaboradorToUpdate = null;
-
-            colaborador.usuario_adiciono = userSession.UserName;
-
-            ResponseDTO respuesta = await _colaboradorService.actualizarInfoColaborador(colaborador);
-
-            if (!respuesta.estado.Equals("OK"))
-            {
-                await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
-                return;
-            }
-
-            await _jsRuntime.InvokeVoidAsync("successToastr", "Información guardada correctamente");
-        }
-        catch (Exception exe)
-        {
-            CancelEdit(colaborador);
-            _logger.LogError(exe, "Error al actualizar colaborador");
-            await _jsRuntime.SweetAlertUsual("Error", "Error al realizar esta operación", TipoMensajeSweetAlert.error);
-        }
-    }
-
-    async Task SaveRow(Colaborador colaborador)
-    {
-        colaborador.usuario_adiciono = "Administrador";
-
-        ResponseDTO respuesta = _colaboradorService.validarColaborador(colaborador);
-
-        if (respuesta.estado.Equals("ERROR"))
-        {
-            await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
-            return;
-        }
-
-        await colaboradoresGrid.UpdateRow(colaborador);
-    }
-
-    void CancelEdit(Colaborador colaborador)
-    {
-        colaboradorToInsert = null;
-        colaboradorToUpdate = null;
-
-        colaboradoresGrid.CancelEditRow(colaborador);
-    }
-
-    async Task InsertRow()
-    {
-        colaboradorToInsert = new Colaborador();
-        await colaboradoresGrid.InsertRow(colaboradorToInsert);
-    }
-
-    private async Task OnCreateRow(Colaborador colaborador)
-    {
-        try
-        {
-            if (colaborador == colaboradorToInsert)
-            {
-                colaboradorToInsert = null;
-            }
-
-            colaboradorToUpdate = null;
-
-            colaborador.usuario_adiciono = "Administrador";
-
-            ResponseDTO respuesta = await _colaboradorService.insertarInfoColaborador(colaborador);
-
-            if (!respuesta.estado.Equals("OK"))
-            {
-                await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
-                return;
-            }
-
-            List<Colaborador> colaboradores_temporal = colaboradores.ToList();
-            colaboradores_temporal.Add(colaborador);
-            colaboradores = colaboradores_temporal.ToList();
-
-            colaboradores_temp = colaboradores;
-
-            await _jsRuntime.InvokeVoidAsync("successToastr", "Información guardada correctamente");
-        }
-        catch (Exception exe)
-        {
-            CancelEdit(colaborador);
-            _logger.LogError(exe, "Error al insertar colaborador");
-            await _jsRuntime.SweetAlertUsual("Error", "Error al realizar esta operación", TipoMensajeSweetAlert.error);
-        }
-    }
-
-    private void OnInputFileChange(InputFileChangeEventArgs e)
-    {
-        selectedFiles = e.GetMultipleFiles();
-        StateHasChanged();
-    }
-
-    private async Task CargueMasivoColaboradores()
-    {
-        if (selectedFiles == null)
-        {
-            await _jsRuntime.SweetAlertUsual("Error", "Debe seleccionar un archivo", TipoMensajeSweetAlert.error);
-            return;
-        }
-
-        await _jsRuntime.SweetAlertLoading("Procesando", "Procesando solicitud");
-
-        datos_cargue_masivo = new CargueMasivoDTO();
-
-        IEnumerable<Archivo> archivos = await FileHelper.getTempFiles(selectedFiles);
-
-        Archivo archivo_cargue = archivos.FirstOrDefault();
-
-        Progress<CargueMasivoDTO> progress = new Progress<CargueMasivoDTO>();
-        progress.ProgressChanged += ReportProgress;
-
-        ResponseDTO respuesta = await _colaboradorService.cargueMasivoColaboradores(archivo_cargue, progress,userSession.UserName);
-
-        if (respuesta.estado.Equals("ERROR"))
-        {
-            await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
-            return;
-        }
-
-        await _jsRuntime.InvokeVoidAsync("Swal.close");
-
-        await _modalCargueMasivo.cerrarModal();
-
-        await _modalCargueMasivoProgress.abrirModal();
-
-    }
-
-    private async void ReportProgress(object sender, CargueMasivoDTO e)
-    {
-        this.datos_cargue_masivo = e;
-        StateHasChanged();
-    }
-
-    private async Task DescargarExcelAsistencias()
-    {
-        try
-        {
-            await _jsRuntime.SweetAlertLoading("Procesando", "Procesando solicitud");
-
-            Archivo archivo = await _colaboradorService.generarReporteRegistroAsistencias(filtros);
-
-            if (archivo is null) return;
-
-            await _jsRuntime.SweetAlertClose();
-
-            await _jsRuntime.DescargarArchivo(archivo.ruta_absoluta, "Reporte");
-        }
-        catch (Exception exe)
-        {
-            _logger.LogError(exe, $"Error al generar reporte excel registro de asistencias");
-            await _jsRuntime.SweetAlertUsual("Error", "Error interno del servidor", TipoMensajeSweetAlert.error);
-        }
-    }
-
-    private async Task DescargarPlantilla()
-    {
-        try
-        {
-            string ruta_plantilla = $"{Directory.GetCurrentDirectory()}\\Formato\\PlantillaColaboradores.xlsx";
-
-            await _jsRuntime.DescargarArchivo(ruta_plantilla, "Plantilla");
-        }
-        catch(Exception exe)
-        {
-            _logger.LogError(exe, "Error al descargar plantilla");
-            await _jsRuntime.SweetAlertUsual("Error", "Error interno del servidor", TipoMensajeSweetAlert.error);
-        }
-    }
+	private bool _isLoading = true;
+
+	[CascadingParameter]
+	protected UserSession? session { get; set; }
+
+	private string nombre_usuario = "";
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		try
+		{
+			if (firstRender)
+			{
+				Usuario usuario = await _userService.getUsuarioByUser(session.UserName);
+
+				if (usuario is null) return;
+
+				nombre_usuario = $"{usuario.nombres} {usuario.apellidos}";
+
+				if (string.IsNullOrEmpty(nombre_usuario))
+				{
+					nombre_usuario = session.UserName;
+				}
+
+				_isLoading = false;
+				StateHasChanged();
+			}
+		}
+		catch (Exception exe)
+		{
+
+		}
+	}
 }

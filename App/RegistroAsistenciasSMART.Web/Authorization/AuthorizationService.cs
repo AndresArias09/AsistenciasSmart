@@ -8,20 +8,29 @@ using Microsoft.JSInterop;
 
 namespace RegistroAsistenciasSMART.Web.Authorization
 {
+    /// <summary>
+    /// Servicio encargado de llevar la autorización de cada módulo del sistema para cada uno de los roles de éste
+    /// </summary>
     public class AuthorizationService : IDisposable
     {
+        public readonly IEnumerable<Modulo> modulos;
+        public readonly IEnumerable<Rol> roles;
         private readonly NavigationManager _navigationManager;
         private readonly IJSRuntime _jsRuntime;
 
-        public AuthorizationService()
-        {
-                
-        }
 
         public AuthorizationService(
+            IModuloService moduloService,
+            IRolService rolService,
             NavigationManager navigationManager,
             IJSRuntime jsRuntime)
         {
+            modulos = moduloService.getModulosSync();
+            if (modulos is null) modulos = new List<Modulo>();
+
+            roles = rolService.getRolesSync();
+            if (roles is null) roles = new List<Rol>();
+
             _navigationManager = navigationManager;
             _jsRuntime = jsRuntime;
 
@@ -29,6 +38,11 @@ namespace RegistroAsistenciasSMART.Web.Authorization
             _navigationManager.LocationChanged += InfoCliente;
         }
 
+        /// <summary>
+        /// Evento que se disparará cada vez que se detecte un cambio de localización/url dentro del aplicativo. Dispara una función que invoca una función de javascript que obtendrá todos los datos del cliente como ubicación, useragent, versión del navegador, entre otros.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void InfoCliente(object sender, LocationChangedEventArgs e)
         {
             await _jsRuntime.InvokeVoidAsync("getClientInfo");

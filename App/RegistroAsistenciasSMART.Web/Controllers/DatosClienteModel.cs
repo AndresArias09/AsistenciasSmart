@@ -1,5 +1,8 @@
 ﻿namespace RegistroAsistenciasSMART.Web.Controllers
 {
+    /// <summary>
+    /// Representa el modelo mediante el cual un cliente hará envío de información como UserAgent, Ubicacion, entre otros hacia el servidor
+    /// </summary>
     public class DatosClienteModel
     {
         public string UserAgent { get; set; } = "";

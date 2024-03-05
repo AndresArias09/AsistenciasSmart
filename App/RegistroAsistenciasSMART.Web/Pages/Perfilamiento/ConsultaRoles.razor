@@ -1,0 +1,252 @@
+﻿@attribute [PageInfo(id_modulo = "2")]
+
+@page "/Perfilamiento/Roles"
+
+@using RegistroAsistenciasSMART.Model.Models.Configuracion.Perfilamiento
+@using RegistroAsistenciasSMART.Services.Interfaces.Configuracion.Perfilamiento
+
+@inject IRolService _rolService
+@inject IModuloService _moduloService
+@inject ILogger<ConsultaRoles> _logger
+
+<div class="row">
+	<div class="card">
+		<HeaderFirma ruta_volver="/Perfilamiento"
+					 titulo="Roles">
+
+		</HeaderFirma>
+
+		<div class="card-body">
+			<RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Agregar nuevo rol" Click="@InsertRow" Disabled=@(rolToInsert != null || rolToUpdate != null) />
+
+            <RadzenDataGridApp 
+                AllowVirtualization="false"
+                @ref="rolesGrid"
+                Data="@roles"
+                TItem="Rol"
+                IsLoading="@_isLoading"
+                EditMode="DataGridEditMode.Single"
+                RowUpdate="@OnUpdateRow"
+                RowCreate="@OnCreateRow"
+                Sort="@Reset"
+                Page="@Reset"
+                Filter="@Reset">
+                <Columns>
+                    <RadzenDataGridColumn TItem="Rol" Frozen="true" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="90px">
+                        <Template Context="rol">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(rol))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                        </Template>
+                        <EditTemplate Context="rol">
+                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(rol))">
+                            </RadzenButton>
+                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(rol))">
+                            </RadzenButton>
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Rol" Property="fecha_adicion" Title="Fecha de Adición">
+                        <EditTemplate Context="rol">
+                            <div style="text-align:center">
+                                @("-")
+                            </div>
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Rol" Property="nombre_rol" Title="Nombre">
+                        <EditTemplate Context="rol">
+                            <input type="text" class="form-control" @bind-value="rol.nombre_rol" />
+                        </EditTemplate>
+                        <Template Context="rol">
+                            @rol.nombre_rol
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Rol" Title="Módulos">
+                        <EditTemplate Context="rol">
+                            <RadzenDropDown SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@ids_selected_modules Style="width:100%;"
+                                            Data="@modulos" ValueProperty="id_modulo" TextProperty="nombre_modulo" AllowClear="true" Multiple="true" />
+                        </EditTemplate>
+                        <Template Context="rol">
+                            @string.Join(", ",rol.modulos.Select(m => m.nombre_modulo))
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGridApp>
+
+			
+		</div>
+	</div>
+
+</div>
+
+@code {
+    private bool _isLoading = true;
+
+    private RadzenDataGrid<Rol> rolesGrid;
+
+    [CascadingParameter]
+    protected UserSession? session { get; set; }
+
+    private IEnumerable<Rol> roles;
+    private IEnumerable<Modulo> modulos;
+
+    private Rol rolToInsert;
+    private Rol rolToUpdate;
+
+    private List<long> ids_selected_modules;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                await LoadData();
+            }
+        }
+        catch (Exception exe)
+        {
+            _logger.LogError(exe, "Error al consultar roles");
+            await _jsRuntime.SweetAlertUsual("Error", "Error interno del servidor", TipoMensajeSweetAlert.error);
+        }
+    }
+
+    private async Task LoadData()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        await Task.Yield();
+
+        var tRoles = _rolService.getRoles();
+        var tModulos =_moduloService.getModulos();
+
+        await Task.WhenAll(tRoles, tModulos);
+
+        roles = await tRoles;
+        modulos = await tModulos;
+
+        roles = roles.OrderByDescending(r => r.fecha_adicion);
+
+        _isLoading = false;
+        StateHasChanged();
+    }
+
+
+    void Reset()
+    {
+        rolToInsert = null;
+        rolToUpdate = null;
+    }
+
+
+    async Task EditRow(Rol rol)
+    {
+        ids_selected_modules = rol.modulos.Select(m => m.id_modulo).ToList();
+        rolToUpdate = rol;
+        await rolesGrid.EditRow(rol);
+    }
+
+    private async Task OnUpdateRow(Rol rol)
+    {
+        try
+        {
+            if (rol == rolToInsert)
+            {
+                rolToInsert = null;
+            }
+
+            rolToUpdate = null;
+
+            string ip_address = await _jsRuntime.GetIpAddress();
+
+            IEnumerable<Modulo> selected_modules = modulos.Where(m => ids_selected_modules.Contains(m.id_modulo));
+
+            rol.modulos = selected_modules.ToList();
+
+            ResponseDTO respuesta = await _rolService.insertarRol(rol, session.UserName, ip_address);
+
+            if (!respuesta.estado.Equals("OK"))
+            {
+                await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
+                return;
+            }
+
+            ids_selected_modules = new List<long>();
+
+            await LoadData();
+
+            await _jsRuntime.InvokeVoidAsync("successToastr", "Información guardada correctamente");
+        }
+        catch (Exception exe)
+        {
+            CancelEdit(rol);
+            _logger.LogError(exe, "Error al guardar información de rol");
+            await _jsRuntime.SweetAlertUsual("Error", "Error al realizar esta operación", TipoMensajeSweetAlert.error);
+        }
+    }
+
+    async Task SaveRow(Rol rol)
+    {
+        ResponseDTO respuesta = _rolService.validarInformacionRol(rol);
+
+        if (respuesta.estado.Equals("ERROR"))
+        {
+            await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
+            return;
+        }
+
+        await rolesGrid.UpdateRow(rol);
+    }
+
+    void CancelEdit(Rol rol)
+    {
+        rolToInsert = null;
+        rolToUpdate = null;
+
+        rolesGrid.CancelEditRow(rol);
+    }
+
+    async Task InsertRow()
+    {
+        rolToInsert = new Rol();
+        await rolesGrid.InsertRow(rolToInsert);
+    }
+
+    private async Task OnCreateRow(Rol rol)
+    {
+        try
+        {
+            if (rol == rolToInsert)
+            {
+                rolToInsert = null;
+            }
+
+            rolToUpdate = null;
+
+            string ip_address = await _jsRuntime.GetIpAddress();
+
+            IEnumerable<Modulo> selected_modules = modulos.Where(m => ids_selected_modules.Contains(m.id_modulo));
+
+            rol.modulos = selected_modules.ToList();
+
+            ResponseDTO respuesta = await _rolService.insertarRol(rol, session.UserName, ip_address);
+
+            if (!respuesta.estado.Equals("OK"))
+            {
+                await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
+                return;
+            }
+
+            ids_selected_modules = new List<long>();
+
+            await LoadData();
+
+            await _jsRuntime.InvokeVoidAsync("successToastr", "Información guardada correctamente");
+        }
+        catch (Exception exe)
+        {
+            CancelEdit(rol);
+            _logger.LogError(exe, "Error al guardar información de rol");
+            await _jsRuntime.SweetAlertUsual("Error", "Error al realizar esta operación", TipoMensajeSweetAlert.error);
+        }
+    }
+}

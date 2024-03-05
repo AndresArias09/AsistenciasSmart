@@ -1,0 +1,17 @@
+﻿<div class="card-header card-header-firma">
+    <a href="@ruta_volver" class="">
+        <svg width="39" height="39" viewBox="0 0 39 39" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="19.5" cy="19.5" r="19.5" fill="#11B19D" fill-opacity="0.16" />
+            <path d="M23 11L15.1658 18.0095C14.2773 18.8045 14.2773 20.1955 15.1658 20.9905L23 28" stroke="#3FB294" stroke-width="3" stroke-linecap="round" />
+        </svg>
+    </a>
+    <h5 class="mb-0">@titulo</h5>
+</div>
+
+@code {
+    [Parameter]
+    public string titulo { get; set; } = "";
+
+    [Parameter]
+    public string ruta_volver { get; set; } = "";
+}

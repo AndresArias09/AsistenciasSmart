@@ -6,9 +6,18 @@ using System.Threading.Tasks;
 
 namespace RegistroAsistenciasSMART.Model.Response
 {
+    /// <summary>
+    /// Objeto DTO mediante el cual se transmite una respuesta a una solicitud
+    /// </summary>
     public class ResponseDTO
     {
-        public string estado { get; set; }
-        public string descripcion { get; set; }
+        /// <summary>
+        /// Indica el resultado final de la solicitud
+        /// </summary>
+        public string estado { get; set; } = string.Empty;
+        /// <summary>
+        /// Indica una descripción precisa, si aplica, de lo que ha ocurrido durante la solicitud
+        /// </summary>
+        public string descripcion { get; set; } = string.Empty;
     }
 }

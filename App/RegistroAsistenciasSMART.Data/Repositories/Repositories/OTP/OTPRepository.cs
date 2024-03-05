@@ -11,6 +11,10 @@ using Npgsql;
 
 namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.OTP
 {
+    /// <summary>
+    /// Implementación de la interfaz <see cref="IOTPRepository"/> 
+    /// utilizando el motor de bases de datos <c>PostgreSQL</c>
+    /// </summary>
     public class OTPRepository : IOTPRepository
     {
         private string ConnectionString;
@@ -20,6 +24,10 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.OTP
             ConnectionString = connectionString;
         }
 
+        /// <summary>
+        /// Crea un objeto <see cref="NpgsqlConnection"/> con el cual se gestionarán las operaciones de base de datos con el motor <c>PostgreSQL</c>
+        /// </summary>
+        /// <returns></returns>
         protected NpgsqlConnection dbConnection()
         {
             return new NpgsqlConnection(ConnectionString);

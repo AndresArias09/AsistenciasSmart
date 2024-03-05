@@ -12,13 +12,15 @@ using RegistroAsistenciasSMART.Data.Repositories.Interfaces.Auditoria;
 using RegistroAsistenciasSMART.Data.Repositories.Repositories.Auditoria;
 using System.Net.Mime;
 using RegistroAsistenciasSMART.Services.Interfaces.Auditoria;
-using iTextSharp.text.log;
 using Microsoft.Extensions.Logging;
 using NPOI.SS.Formula.Functions;
 using RegistroAsistenciasSMART.Model.Models.Auditoria;
 
 namespace RegistroAsistenciasSMART.Services.Services.Utilidades
 {
+    /// <summary>
+    /// Implementación de la interfaz <see cref="IEmailService"/>
+    /// </summary>
     public class EmailService : IEmailService
     {
         private readonly IAuditoriaService _auditoriaService;
@@ -90,15 +92,20 @@ namespace RegistroAsistenciasSMART.Services.Services.Utilidades
                 emailsend.IsBodyHtml = true;
                 emailsend.Priority = MailPriority.Normal;
 
-
-
                 if (emailInfo.anexos.Count > 0)
                 {
                     foreach (var anexo in emailInfo.anexos)
                     {
-                        if (File.Exists(anexo))
+                        if (File.Exists(anexo.ruta_anexo))
                         {
-                            emailsend.Attachments.Add(new Attachment(anexo, MediaTypeNames.Application.Octet));
+                            Attachment attachment = new Attachment(anexo.ruta_anexo, MediaTypeNames.Application.Octet);
+
+                            if (!string.IsNullOrEmpty(anexo.nombre_archivo))
+                            {
+                                attachment.ContentDisposition.FileName = $"{anexo.nombre_archivo}{Path.GetExtension(anexo.ruta_anexo)}";
+                            }
+
+                            emailsend.Attachments.Add(attachment);
                         }
                     }
                 }

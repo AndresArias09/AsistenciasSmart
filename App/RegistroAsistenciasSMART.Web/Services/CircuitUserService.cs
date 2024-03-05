@@ -3,6 +3,9 @@ using System.Collections.Concurrent;
 
 namespace RegistroAsistenciasSMART.Web.Services
 {
+    /// <summary>
+    /// Implementación de la interfaz <see cref="ICircuitUserService"/>
+    /// </summary>
     public class CircuitUserService : ICircuitUserService
     {
         public ConcurrentDictionary<string, CircuitUser> Circuits { get; private set; }
@@ -16,7 +19,10 @@ namespace RegistroAsistenciasSMART.Web.Services
             _logger = logger;
             Circuits = new ConcurrentDictionary<string, CircuitUser>();
         }
-
+        /// <summary>
+        /// Invoca el evento <see cref="UserConnected"/> cuando se conecta un usuario
+        /// </summary>
+        /// <param name="user">Varible de sesión del usuario recién conectado</param>
         void OnConnectedUser(UserSession user)
         {
             try
@@ -33,6 +39,10 @@ namespace RegistroAsistenciasSMART.Web.Services
             }
 
         }
+        /// <summary>
+        /// Invoca el evento <see cref="UserDisconnected"/> cuando se desconecta un usuario
+        /// </summary>
+        /// <param name="user">Variable de sesión del usuario recién desconectado</param>
         void OnDisconnectedUser(UserSession user)
         {
             try

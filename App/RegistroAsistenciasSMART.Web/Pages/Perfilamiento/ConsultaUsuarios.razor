@@ -1,0 +1,351 @@
+﻿@attribute [PageInfo(id_modulo = "3")]
+
+@page "/Perfilamiento/Usuarios"
+
+@using RegistroAsistenciasSMART.Model.Models
+@using RegistroAsistenciasSMART.Model.Models.Configuracion.Perfilamiento
+@using RegistroAsistenciasSMART.Services.Interfaces.Configuracion.Perfilamiento
+
+@inject IRolService _rolService
+@inject IUserService _userService
+@inject ILogger<ConsultaUsuarios> _logger
+
+<div class="row">
+    <div class="card">
+        <HeaderFirma ruta_volver="/Perfilamiento"
+                     titulo="Usuarios">
+
+        </HeaderFirma>
+
+        <div class="card-body">
+            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Agregar nuevo usuario" Click="@InsertRow" Disabled=@(usuarioToInsert != null || usuarioToUpdate != null) />
+            
+            <button class="btn btn-info float-right" @onclick=@(() => _navigationManager.NavigateTo("/Perfilamiento/Usuario/UserTracking"))>User Tracking</button>
+            
+            <RadzenDataGridApp AllowVirtualization="false"
+                               @ref="usuariosGrid"
+                               Data="@usuarios"
+                               TItem="Usuario"
+                               IsLoading="@_isLoading"
+                               EditMode="DataGridEditMode.Single"
+                               RowUpdate="@OnUpdateRow"
+                               RowCreate="@OnCreateRow"
+                               Sort="@Reset"
+                               Page="@Reset"
+                               Filter="@Reset">
+                <Columns>
+                    <RadzenDataGridColumn TItem="Usuario" Frozen="true" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="90px">
+                        <Template Context="usuario">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(usuario))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                        </Template>
+                        <EditTemplate Context="usuario">
+                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(usuario))">
+                            </RadzenButton>
+                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(usuario))">
+                            </RadzenButton>
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Usuario" Property="fecha_adicion" Title="Fecha de Adición">
+                        <EditTemplate Context="usuario">
+                            <div style="text-align:center">
+                                @("-")
+                            </div>
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Width="100px" TItem="Usuario" Property="estado" Title="Estado" Type="typeof(IEnumerable<string>)"
+                                          FilterValue="@selectedEstadoIds" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedEstadoIds Style="width:100%;"
+                                            Change=@OnselectedEstadoIdsChange Data="@(estados)" AllowClear="true" ValueProperty="id_estado" TextProperty="descripcion" Multiple="true" />
+                        </FilterTemplate>
+                        <EditTemplate Context="usuario">
+                            <RadzenDropDown  AllowClear="false" TValue="string" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Class="form-control"
+                                            Placeholder="[Seleccionar]" @bind-value="usuario.estado" Data=@estados TextProperty="descripcion" ValueProperty="id_estado" />
+                        </EditTemplate>
+                        <Template Context="usuario">
+                            <center>
+                                <div style='width: 30px; height: 30px; -moz-border-radius: 50%; -webkit-border-radius: 50%; border-radius: 50%; background: @(GetColor(usuario));'>
+                                </div>
+                            </center>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Usuario" Property="email" Title="Correo electrónico">
+                        <EditTemplate Context="usuario">
+                            @if (usuarioToUpdate is null)
+                            {
+                                <input type="email" class="form-control" @bind-value="usuario.email" placeholder="Correo electrónico" />
+                            }
+                            else
+                            {
+                                @usuario.email
+                            }
+                        </EditTemplate>
+                        <Template Context="usuario">
+                            @usuario.email
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Usuario" Property="id_rol" Title="Rol" Type="typeof(IEnumerable<long>)"
+                                          FilterValue="@selectedRolIds" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedRolIds Style="width:100%;"
+                                            Change=@OnselectedRolIdsChange Data="@(roles)" AllowClear="true" ValueProperty="id_rol" TextProperty="nombre_rol" Multiple="true" />
+                        </FilterTemplate>
+                        <EditTemplate Context="usuario">
+                            <RadzenDropDown AllowClear="false" TValue="long" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Class="form-control"
+                                            Placeholder="[Seleccionar]" @bind-value="usuario.id_rol" Data=@roles TextProperty="nombre_rol" ValueProperty="id_rol"  />
+                        </EditTemplate>
+                        <Template Context="usuario">
+                            @usuario.rol?.nombre_rol
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Usuario" Property="nombres" Title="Nombres">
+                        <EditTemplate Context="usuario">
+                            <input type="text" class="form-control" @bind-value="usuario.nombres" placeholder="Nombres" />
+                        </EditTemplate>
+                        <Template Context="usuario">
+                            @usuario.nombres
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Usuario" Property="apellidos" Title="Apellidos">
+                        <EditTemplate Context="usuario">
+                            <input type="text" class="form-control" @bind-value="usuario.apellidos" placeholder="Apellidos" />
+                        </EditTemplate>
+                        <Template Context="usuario">
+                            @usuario.apellidos
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Usuario" Property="area" Title="Área">
+                        <EditTemplate Context="usuario">
+                            <RadzenAutoComplete @bind-Value=@usuario.area
+                                                FilterDelay="30"
+                                                FilterOperator="StringFilterOperator.Contains"
+                                                Placeholder="Área"
+                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                Data=@areas>
+                            </RadzenAutoComplete>
+                        </EditTemplate>
+                        <Template Context="usuario">
+                            @usuario.area
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Usuario" Property="cargo" Title="Cargo">
+                        <EditTemplate Context="usuario">
+                            <input type="text" class="form-control" @bind-value="usuario.cargo" placeholder="Cargo" />
+                        </EditTemplate>
+                        <Template Context="usuario">
+                            @usuario.cargo
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGridApp>
+
+
+        </div>
+    </div>
+
+</div>
+
+@code {
+    private bool _isLoading = true;
+
+    private RadzenDataGrid<Usuario> usuariosGrid;
+
+    [CascadingParameter]
+    protected UserSession? session { get; set; }
+
+    private IEnumerable<Rol> roles;
+    private IEnumerable<Usuario> usuarios;
+
+    private Usuario usuarioToInsert;
+    private Usuario usuarioToUpdate;
+
+    private IEnumerable<string> selectedEstadoIds;
+    private IEnumerable<long> selectedRolIds;
+
+    private IEnumerable<Estado> estados = Estado.estados;
+
+    private List<string> areas = new List<string>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                await LoadData();
+            }
+        }
+        catch (Exception exe)
+        {
+            _logger.LogError(exe, "Error al consultar usuarios");
+            await _jsRuntime.SweetAlertUsual("Error", "Error interno del servidor", TipoMensajeSweetAlert.error);
+        }
+    }
+
+    private async Task LoadData()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        await Task.Yield();
+
+        var tRoles = _rolService.getRoles();
+        var tUsuarios = _userService.getUsuarios();
+
+        await Task.WhenAll(tRoles, tUsuarios);
+
+        roles = await tRoles;
+        usuarios = await tUsuarios;
+
+        areas = usuarios.Select(u => u.area).Distinct().ToList();
+
+        usuarios = usuarios.OrderByDescending(u => u.fecha_adicion);
+
+        if (!session.Role.Equals("1"))
+        {
+            usuarios = usuarios.Where(u => !u.usuario.Equals(session.UserName));
+        }
+
+        _isLoading = false;
+        StateHasChanged();
+    }
+
+
+    void Reset()
+    {
+        usuarioToInsert = null;
+        usuarioToUpdate = null;
+    }
+
+
+    async Task EditRow(Usuario usuario)
+    {
+        usuarioToUpdate = usuario;
+        await usuariosGrid.EditRow(usuario);
+    }
+
+    private async Task OnUpdateRow(Usuario usuario)
+    {
+        try
+        {
+            if (usuario == usuarioToInsert)
+            {
+                usuarioToInsert = null;
+            }
+
+            usuarioToUpdate = null;
+
+            string ip_address = await _jsRuntime.GetIpAddress();
+
+            usuario.usuario = usuario.email;
+
+            ResponseDTO respuesta = await _userService.insertarUsuario(usuario, ip_address, session.UserName);
+
+            if (!respuesta.estado.Equals("OK"))
+            {
+                await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
+                return;
+            }
+
+            await LoadData();
+
+            await _jsRuntime.InvokeVoidAsync("successToastr", "Información guardada correctamente");
+        }
+        catch (Exception exe)
+        {
+            CancelEdit(usuario);
+            _logger.LogError(exe, "Error al guardar información de usuario");
+            await _jsRuntime.SweetAlertUsual("Error", "Error al realizar esta operación", TipoMensajeSweetAlert.error);
+        }
+    }
+
+    async Task SaveRow(Usuario usuario)
+    {
+        usuario.usuario = usuario.email;
+
+        ResponseDTO respuesta = _userService.validarInfoUsuario(usuario);
+
+        if (respuesta.estado.Equals("ERROR"))
+        {
+            await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
+            return;
+        }
+
+        await usuariosGrid.UpdateRow(usuario);
+    }
+
+    void CancelEdit(Usuario usuario)
+    {
+        usuarioToInsert = null;
+        usuarioToUpdate = null;
+
+        usuariosGrid.CancelEditRow(usuario);
+    }
+
+    async Task InsertRow()
+    {
+        usuarioToInsert = new Usuario();
+        usuarioToInsert.estado = "1";
+        await usuariosGrid.InsertRow(usuarioToInsert);
+    }
+
+    private async Task OnCreateRow(Usuario usuario)
+    {
+        try
+        {
+            if (usuario == usuarioToInsert)
+            {
+                usuarioToInsert = null;
+            }
+
+            usuarioToUpdate = null;
+
+            string ip_address = await _jsRuntime.GetIpAddress();
+
+            usuario.usuario = usuario.email;
+
+            ResponseDTO respuesta = await _userService.insertarUsuario(usuario, ip_address, session.UserName);
+
+            if (!respuesta.estado.Equals("OK"))
+            {
+                await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
+                return;
+            }
+
+            await LoadData();
+
+            await _jsRuntime.InvokeVoidAsync("successToastr", "Información guardada correctamente");
+        }
+        catch (Exception exe)
+        {
+            CancelEdit(usuario);
+            _logger.LogError(exe, "Error al guardar información de usuario");
+            await _jsRuntime.SweetAlertUsual("Error", "Error al realizar esta operación", TipoMensajeSweetAlert.error);
+        }
+    }
+
+    private string GetColor(Usuario usuario)
+    {
+        if (usuario.estado.Equals("1")) return "green";
+        if (usuario.estado.Equals("2")) return "red";
+
+        return "gray";
+    }
+
+    void OnselectedEstadoIdsChange(object value)
+    {
+        if (selectedEstadoIds != null && !selectedEstadoIds.Any())
+        {
+            selectedEstadoIds = null;
+        }
+    }
+
+    void OnselectedRolIdsChange(object value)
+    {
+        if (selectedRolIds != null && !selectedRolIds.Any())
+        {
+            selectedRolIds = null;
+        }
+    }
+}

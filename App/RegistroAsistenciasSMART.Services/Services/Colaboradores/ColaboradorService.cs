@@ -14,6 +14,11 @@ using RegistroAsistenciasSMART.Model.DTO;
 using RegistroAsistenciasSMART.Services.Interfaces.Configuracion.Perfilamiento;
 using System.Text.RegularExpressions;
 using RegistroAsistenciasSMART.Model.Constantes;
+using iText.Kernel.Pdf.Canvas.Wmf;
+using NPOI.SS.Formula.Functions;
+using System.Globalization;
+using DocumentFormat.OpenXml.Spreadsheet;
+using static iText.Kernel.Pdf.Colorspace.PdfDeviceCs;
 
 namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 {
@@ -52,7 +57,6 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
         private void limpiarInfoColaborador(Colaborador colaborador)
         {
             colaborador.area = colaborador.area.Trim();
-            colaborador.turno = colaborador.turno.Trim();
             colaborador.usuario_adiciono = colaborador.usuario_adiciono.Trim();
             colaborador.cargo = colaborador.cargo.Trim();
             colaborador.correo = colaborador.correo.Trim();
@@ -92,11 +96,6 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el área del colaborador" };
             }
 
-            if (colaborador.jefe_inmediato is null)
-            {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el jefe inmediato del colaborador" };
-            }
-
             if (string.IsNullOrEmpty(colaborador.sede))
             {
                 return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la sede del colaborador" };
@@ -112,11 +111,6 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 return new ResponseDTO() { estado = "ERROR", descripcion = $"Formato de correo incorrecto para el correo electrónico del colaborador" };
             }
 
-            if (string.IsNullOrEmpty(colaborador.turno))
-            {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el turno del colaborador" };
-            }
-
             if (colaborador.estado is null)
             {
                 return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el estado del colaborador" };
@@ -127,24 +121,17 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el usuario que adiciona al colaborador" };
             }
 
+            if(colaborador.hora_entrada_lv is null)
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la hora de entrada del colaborador para los días Lunes-Viernes" };
+            }
+
+            if (colaborador.hora_salida_lv is null)
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la hora de salida del colaborador para los días Lunes-Viernes" };
+            }
+
             return new ResponseDTO() { estado = "OK"};
-        }
-        public async Task<ResponseDTO> actualizarInfoColaborador(Colaborador colaborador)
-        {
-            limpiarInfoColaborador(colaborador);
-
-            ResponseDTO respuesta_validacion = validarColaborador(colaborador);
-
-            if (!respuesta_validacion.estado.Equals("OK")) return respuesta_validacion;
-
-            if(await _colaboradorRepository.actualizarColaborador(colaborador))
-            {
-                return new ResponseDTO() { estado = "OK", descripcion = ""};
-            }
-            else
-            {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "No fue posible actualizar la información del colaborador" };
-            }
         }
         public async Task<Colaborador> consultarColaboradorByCedula(long cedula)
         {
@@ -160,33 +147,49 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             ResponseDTO respuesta_validacion = validarColaborador(colaborador);
 
-            Colaborador colaborador_temp = await _colaboradorRepository.consultarColaboradorByCedula(colaborador.cedula.GetValueOrDefault());
-
-            if(colaborador_temp is not null)
-            {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Ya existe un colaborador con la cédula indicada"};
-            }
-
             if (!respuesta_validacion.estado.Equals("OK")) return respuesta_validacion;
 
-            if (await _colaboradorRepository.insertarColaborador(colaborador))
+            Colaborador colaborador_temp = await _colaboradorRepository.consultarColaboradorByCedula(colaborador.cedula.GetValueOrDefault());
+
+            bool nuevo_colaborador = colaborador_temp is null;
+
+            bool respuesta = false;
+
+
+            Colaborador jefe = await _colaboradorRepository.consultarColaboradorByCedula(colaborador.jefe_inmediato.GetValueOrDefault());
+
+            if (jefe is null) colaborador.jefe_inmediato = null;
+
+
+            if (nuevo_colaborador)
+            {
+                colaborador.estado = 1;
+                respuesta = await _colaboradorRepository.insertarColaborador(colaborador);
+            }
+            else
+            {
+                respuesta = await _colaboradorRepository.actualizarColaborador(colaborador);
+            }
+
+            if (respuesta)
             {
                 return new ResponseDTO() { estado = "OK", descripcion = "" };
             }
             else
             {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "No fue posible actualizar la información del colaborador" };
+                return new ResponseDTO() { estado = "ERROR", descripcion = "No fue posible guardar la información del colaborador" };
             }
         }
         public async Task<ResponseDTO> cargueMasivoColaboradores(Archivo archivo_cargue, IProgress<CargueMasivoDTO> progress, string usuario_accion)
         {
             string rutaArchivo = "";
 
-            string ruta_base = Directory.GetCurrentDirectory() + "\\ArchivosCargueMasivo\\CargueColaborador";
+            string ruta_base = Path.Combine(Directory.GetCurrentDirectory(), "ArchivosCargueMasivo", "CargueColaborador");
             Directory.CreateDirectory(ruta_base);
 
             string nombre_final = "CARGUE_MASIVO_COLABORADORES_" + DateTime.Now.ToString("ddMMyyyyhhmmss") + ".xlsx";
-            rutaArchivo = ruta_base + $"\\{nombre_final}";
+
+            rutaArchivo = Path.Combine(ruta_base, nombre_final);
 
             File.Copy(archivo_cargue.ruta_absoluta, rutaArchivo);
 
@@ -218,384 +221,183 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             try
             {
-                try
+                XSSFSheet HojaExcel = LibroExcel.GetSheetAt(0) as XSSFSheet;
+                if (HojaExcel.LastRowNum >= 1)
                 {
-                    XSSFSheet HojaExcel = LibroExcel.GetSheetAt(0) as XSSFSheet;
-                    if (HojaExcel.LastRowNum >= 1)
+                    string cedula = "";
+                    string nombres = "";
+                    string apellidos = "";
+                    string cargo = "";
+                    string area = "";
+                    string jefe_inmediato = "";
+                    string sede = "";
+                    string correo = "";
+                    DateTime? hora_entrada_lv = null;
+                    DateTime? hora_salida_lv = null;
+                    DateTime? hora_entrada_s = null;
+                    DateTime? hora_salida_s = null;
+
+                    for (int i = 1; i <= HojaExcel.LastRowNum; i++)
                     {
-                        string cedula = "";
-                        string nombres = "";
-                        string apellidos = "";
-                        string cargo = "";
-                        string area = "";
-                        string jefe_inmediato = "";
-                        string sede = "";
-                        string correo = "";
-                        string turno = "";
-                        string estado = "";
+                        cedula = "";
+                        nombres = "";
+                        apellidos = "";
+                        cargo = "";
+                        area = "";
+                        jefe_inmediato = "";
+                        sede = "";
+                        correo = "";
+                        hora_entrada_lv = null;
+                        hora_salida_lv = null;
+                        hora_entrada_s = null;
+                        hora_salida_s = null;
 
-                        for (int i = 1; i <= HojaExcel.LastRowNum; i++)
+                        IRow fila = HojaExcel.GetRow(i);
+
+                        try
                         {
-                            cedula = "";
-                            nombres = "";
-                            apellidos = "";
-                            cargo = "";
-                            area = "";
-                            jefe_inmediato = "";
-                            sede = "";
-                            correo = "";
-                            turno = "";
-                            estado = "";
+                            int contadorCelda = -1;
 
-                            IRow fila = HojaExcel.GetRow(i);
+                            #region Lectura datos excel
+
+                            contadorCelda++;
+                            cedula = UtilidadesExcel.getCellValue(contadorCelda,fila);
+
+                            contadorCelda++;
+                            nombres = UtilidadesExcel.getCellValue(contadorCelda, fila);
+
+                            contadorCelda++;
+                            apellidos = UtilidadesExcel.getCellValue(contadorCelda, fila);
+
+                            contadorCelda++;
+                            cargo = UtilidadesExcel.getCellValue(contadorCelda, fila);
+
+                            contadorCelda++;
+                            area = UtilidadesExcel.getCellValue(contadorCelda, fila);
+
+                            contadorCelda++;
+                            jefe_inmediato = UtilidadesExcel.getCellValue(contadorCelda, fila);
+
+                            contadorCelda++;
+                            sede = UtilidadesExcel.getCellValue(contadorCelda, fila);
+
+                            contadorCelda++;
+                            correo = UtilidadesExcel.getCellValue(contadorCelda, fila);
+
+                            contadorCelda++;
+                            hora_entrada_lv = UtilidadesExcel.getCellDateValue(contadorCelda, fila);
+
+                            contadorCelda++;
+                            hora_salida_lv = UtilidadesExcel.getCellDateValue(contadorCelda, fila);
+
+                            contadorCelda++;
+                            hora_entrada_s = UtilidadesExcel.getCellDateValue(contadorCelda, fila);
+
+                            contadorCelda++;
+                            hora_salida_s = UtilidadesExcel.getCellDateValue(contadorCelda, fila);
+
+                            #endregion
+
+                            Colaborador colaborador = new Colaborador()
+                            {
+                                nombres = nombres,
+                                apellidos = apellidos,
+                                cargo = cargo,
+                                area = area,
+                                sede = sede,
+                                correo = correo,
+                                usuario_adiciono = usuario
+                            };
+
+                            #region Conversión de datos
+
+                            //Cédula
+
+                            long cedula_value = 0;
+
+                            if (!long.TryParse(cedula, out cedula_value))
+                            {
+                                colaborador.cedula = null;
+                            }
+                            else
+                            {
+                                colaborador.cedula = cedula_value;
+                            }
+
+                            //Cédula del jefe inmediato
+
+                            long cedula_jefe_inmediato_value = 0;
+
+                            if (!long.TryParse(jefe_inmediato, out cedula_jefe_inmediato_value))
+                            {
+                                colaborador.jefe_inmediato = null;
+                            }
+                            else
+                            {
+                                colaborador.jefe_inmediato = cedula_jefe_inmediato_value;
+                            }
+
+                            #endregion
+
+                            colaborador.cedula = cedula_value;
+                            colaborador.jefe_inmediato = cedula_jefe_inmediato_value;
+                            colaborador.hora_entrada_lv = hora_entrada_lv is null ? null : hora_entrada_lv.GetValueOrDefault().TimeOfDay;
+                            colaborador.hora_salida_lv = hora_salida_lv is null ? null : hora_salida_lv.GetValueOrDefault().TimeOfDay;
+                            colaborador.hora_entrada_s = hora_entrada_s is null ? null : hora_entrada_s.GetValueOrDefault().TimeOfDay;
+                            colaborador.hora_salida_s = hora_salida_s is null ? null : hora_salida_s.GetValueOrDefault().TimeOfDay;
+                            
+
+                            colaborador.estado = 1;
 
                             try
                             {
-                                int contadorCelda = -1;
+                                ResponseDTO respuesta_insercion = await insertarInfoColaborador(colaborador);
 
-                                #region Lectura datos excel
-
-                                contadorCelda++; try
+                                if (respuesta_insercion.estado.Equals("OK"))
                                 {
-                                    ICell celda = fila.GetCell(contadorCelda);
-                                    switch (celda.CellType)
-                                    {
-                                        case CellType.String:
-                                            cedula = fila.GetCell(contadorCelda).StringCellValue;
-                                            break;
-                                        case CellType.Numeric:
-                                            cedula = fila.GetCell(contadorCelda).NumericCellValue.ToString();
-                                            break;
-                                        case CellType.Blank:
-                                            cedula = "";
-                                            break;
-                                        default:
-                                            //set default
-                                            break;
-                                    }
+                                    contador_cargados++;
                                 }
-                                catch (Exception exe)
-                                {
-                                    if (!string.IsNullOrEmpty(cedula))
-                                    {
-
-                                    }
-                                }
-
-                                contadorCelda++; try
-                                {
-                                    ICell celda = fila.GetCell(contadorCelda);
-                                    switch (celda.CellType)
-                                    {
-                                        case CellType.String:
-                                            nombres = fila.GetCell(contadorCelda).StringCellValue;
-                                            break;
-                                        case CellType.Numeric:
-                                            nombres = fila.GetCell(contadorCelda).NumericCellValue.ToString();
-                                            break;
-                                        case CellType.Blank:
-                                            nombres = "";
-                                            break;
-                                        default:
-                                            //set default
-                                            break;
-                                    }
-                                }
-                                catch (Exception exe)
-                                {
-                                    if (!string.IsNullOrEmpty(nombres))
-                                    {
-
-                                    }
-                                }
-
-                                contadorCelda++; try
-                                {
-                                    ICell celda = fila.GetCell(contadorCelda);
-                                    switch (celda.CellType)
-                                    {
-                                        case CellType.String:
-                                            apellidos = fila.GetCell(contadorCelda).StringCellValue;
-                                            break;
-                                        case CellType.Numeric:
-                                            apellidos = fila.GetCell(contadorCelda).NumericCellValue.ToString();
-                                            break;
-                                        case CellType.Blank:
-                                            apellidos = "";
-                                            break;
-                                        default:
-                                            //set default
-                                            break;
-                                    }
-                                }
-                                catch (Exception exe)
-                                {
-                                    if (!string.IsNullOrEmpty(apellidos))
-                                    {
-
-                                    }
-                                }
-
-                                contadorCelda++; try
-                                {
-                                    ICell celda = fila.GetCell(contadorCelda);
-                                    switch (celda.CellType)
-                                    {
-                                        case CellType.String:
-                                            cargo = fila.GetCell(contadorCelda).StringCellValue;
-                                            break;
-                                        case CellType.Numeric:
-                                            cargo = fila.GetCell(contadorCelda).NumericCellValue.ToString();
-                                            break;
-                                        case CellType.Blank:
-                                            cargo = "";
-                                            break;
-                                        default:
-                                            //set default
-                                            break;
-                                    }
-                                }
-                                catch (Exception exe)
-                                {
-                                    if (!string.IsNullOrEmpty(cargo))
-                                    {
-
-                                    }
-                                }
-
-                                contadorCelda++; try
-                                {
-                                    ICell celda = fila.GetCell(contadorCelda);
-                                    switch (celda.CellType)
-                                    {
-                                        case CellType.String:
-                                            area = fila.GetCell(contadorCelda).StringCellValue;
-                                            break;
-                                        case CellType.Numeric:
-                                            area = fila.GetCell(contadorCelda).NumericCellValue.ToString();
-                                            break;
-                                        case CellType.Blank:
-                                            area = "";
-                                            break;
-                                        default:
-                                            //set default
-                                            break;
-                                    }
-                                }
-                                catch (Exception exe)
-                                {
-                                    if (!string.IsNullOrEmpty(area))
-                                    {
-
-                                    }
-                                }
-
-                                contadorCelda++; try
-                                {
-                                    ICell celda = fila.GetCell(contadorCelda);
-                                    switch (celda.CellType)
-                                    {
-                                        case CellType.String:
-                                            jefe_inmediato = fila.GetCell(contadorCelda).StringCellValue;
-                                            break;
-                                        case CellType.Numeric:
-                                            jefe_inmediato = fila.GetCell(contadorCelda).NumericCellValue.ToString();
-                                            break;
-                                        case CellType.Blank:
-                                            jefe_inmediato = "";
-                                            break;
-                                        default:
-                                            //set default
-                                            break;
-                                    }
-                                }
-                                catch (Exception exe)
-                                {
-                                    if (!string.IsNullOrEmpty(jefe_inmediato))
-                                    {
-
-                                    }
-                                }
-
-                                contadorCelda++; try
-                                {
-                                    ICell celda = fila.GetCell(contadorCelda);
-                                    switch (celda.CellType)
-                                    {
-                                        case CellType.String:
-                                            sede = fila.GetCell(contadorCelda).StringCellValue;
-                                            break;
-                                        case CellType.Numeric:
-                                            sede = fila.GetCell(contadorCelda).NumericCellValue.ToString();
-                                            break;
-                                        case CellType.Blank:
-                                            sede = "";
-                                            break;
-                                        default:
-                                            //set default
-                                            break;
-                                    }
-                                }
-                                catch (Exception exe)
-                                {
-                                    if (!string.IsNullOrEmpty(sede))
-                                    {
-
-                                    }
-                                }
-
-                                contadorCelda++; try
-                                {
-                                    ICell celda = fila.GetCell(contadorCelda);
-                                    switch (celda.CellType)
-                                    {
-                                        case CellType.String:
-                                            correo = fila.GetCell(contadorCelda).StringCellValue;
-                                            break;
-                                        case CellType.Numeric:
-                                            correo = fila.GetCell(contadorCelda).NumericCellValue.ToString();
-                                            break;
-                                        case CellType.Blank:
-                                            correo = "";
-                                            break;
-                                        default:
-                                            //set default
-                                            break;
-                                    }
-                                }
-                                catch (Exception exe)
-                                {
-                                    if (!string.IsNullOrEmpty(correo))
-                                    {
-
-                                    }
-                                }
-
-                                contadorCelda++; try
-                                {
-                                    ICell celda = fila.GetCell(contadorCelda);
-                                    switch (celda.CellType)
-                                    {
-                                        case CellType.String:
-                                            turno = fila.GetCell(contadorCelda).StringCellValue;
-                                            break;
-                                        case CellType.Numeric:
-                                            turno = fila.GetCell(contadorCelda).NumericCellValue.ToString();
-                                            break;
-                                        case CellType.Blank:
-                                            turno = "";
-                                            break;
-                                        default:
-                                            //set default
-                                            break;
-                                    }
-                                }
-                                catch (Exception exe)
-                                {
-                                    if (!string.IsNullOrEmpty(turno))
-                                    {
-
-                                    }
-                                }
-
-                                contadorCelda++; try
-                                {
-                                    ICell celda = fila.GetCell(contadorCelda);
-                                    switch (celda.CellType)
-                                    {
-                                        case CellType.String:
-                                            estado = fila.GetCell(contadorCelda).StringCellValue;
-                                            break;
-                                        case CellType.Numeric:
-                                            estado = fila.GetCell(contadorCelda).NumericCellValue.ToString();
-                                            break;
-                                        case CellType.Blank:
-                                            estado = "";
-                                            break;
-                                        default:
-                                            //set default
-                                            break;
-                                    }
-                                }
-                                catch (Exception exe)
-                                {
-                                    if (!string.IsNullOrEmpty(estado))
-                                    {
-
-                                    }
-                                }
-
-                                #endregion
-
-                                Colaborador colaborador = new Colaborador()
-                                {
-                                    area = area,
-                                    cargo = cargo,
-                                    cedula = long.Parse(cedula),
-                                    correo = correo,
-                                    estado = long.Parse(estado),
-                                    jefe_inmediato = long.Parse(jefe_inmediato),
-                                    nombres = nombres,
-                                    apellidos = apellidos,
-                                    sede = sede,
-                                    turno = turno,
-                                    usuario_adiciono = usuario
-                                };
-
-                                try
-                                {
-                                    ResponseDTO respuesta_insercion = await insertarInfoColaborador(colaborador);
-
-                                    if (respuesta_insercion.estado.Equals("OK"))
-                                    {
-                                        contador_cargados++;
-                                    }
-                                    else
-                                    {
-                                        contador_no_cargados++;
-
-                                        cargue.errores.Add(new DetalleErrorCargueMasivo()
-                                        {
-                                            numero_registro = i,
-                                            descripcion = respuesta_insercion.descripcion,
-                                            identificador_registro = colaborador.cedula.ToString()
-                                        });
-                                    }
-                                }
-                                catch (Exception exe)
+                                else
                                 {
                                     contador_no_cargados++;
 
                                     cargue.errores.Add(new DetalleErrorCargueMasivo()
                                     {
                                         numero_registro = i,
-                                        descripcion = "Ocurrió un error al procesar el registro",
-                                        identificador_registro = colaborador.cedula.ToString()
+                                        descripcion = respuesta_insercion.descripcion,
+                                        identificador_registro = colaborador.cedula.GetValueOrDefault().ToString(),
                                     });
-
-                                    _logger.LogError(exe, $"Error al realizar proceso de cargue de colaboradores");
-                                }
-                                finally
-                                {
-                                    cargue.estado = "EN CARGUE";
-                                    cargue.total_registros = Int32.Parse(total_registros);
-                                    cargue.total_registros_no_procesados = contador_no_cargados;
-                                    cargue.total_registros_procesados = contador_cargados;
-                                    cargue.total_faltantes = (Int32.Parse(total_registros) - contador_cargados - contador_no_cargados);
-
-                                    progress.Report(cargue);
                                 }
                             }
                             catch (Exception exe)
                             {
+                                contador_no_cargados++;
+
+                                cargue.errores.Add(new DetalleErrorCargueMasivo()
+                                {
+                                    numero_registro = i,
+                                    descripcion = "Ocurrió un error al procesar el registro",
+                                    identificador_registro = colaborador.cedula.GetValueOrDefault().ToString()
+                                });
+
                                 _logger.LogError(exe, $"Error al realizar proceso de cargue de colaboradores");
                             }
+                            finally
+                            {
+                                cargue.estado = "EN CARGUE";
+                                cargue.total_registros = Int32.Parse(total_registros);
+                                cargue.total_registros_no_procesados = contador_no_cargados;
+                                cargue.total_registros_procesados = contador_cargados;
+                                cargue.total_faltantes = (Int32.Parse(total_registros) - contador_cargados - contador_no_cargados);
+
+                                progress.Report(cargue);
+                            }
+                        }
+                        catch (Exception exe)
+                        {
+                            _logger.LogError(exe, $"Error al realizar proceso de cargue de colaboradores");
                         }
                     }
-                }
-                catch (Exception exe)
-                {
-                    _logger.LogError(exe, $"Error al realizar proceso de cargue de colaboradores");
                 }
             }
             catch (Exception e)
@@ -615,10 +417,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             progress.Report(cargue);
         }
-        public async Task<bool> eliminarColaborador(long cedula)
-        {
-            return await _colaboradorRepository.eliminarColaborador(cedula);
-        }
+
         private ResponseDTO validarRegistroAsistencia(RegistroAsistencia registro)
         {
             if (registro.cedula_colaborador is null)
@@ -626,7 +425,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la cédula para el registro"};
             }
 
-            if (string.IsNullOrEmpty(registro.tipo_reporte)
+            if (string.IsNullOrEmpty(registro.tipo_reporte))
             {
                 return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el tipo de reporte para el registro" };
             }
@@ -714,26 +513,24 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             IEnumerable<RegistroAsistenciaDTO> asistencias = await consultarRegistrosAsistencia(filtros);
 
-            string ruta_base = Directory.GetCurrentDirectory() + "\\Reportes";
-            if (!Directory.Exists(ruta_base)) Directory.CreateDirectory(ruta_base);
+            string ruta_base = Path.Combine(Directory.GetCurrentDirectory(), "Reportes");
+            
+            Directory.CreateDirectory(ruta_base);
 
-            string ruta_reporte = ruta_base + $"\\ReporteAsistencias_{DateTime.Now.ToString("yyyy-MM-dd hh-mm-ss tt")}.xlsx";
+            string ruta_reporte = Path.Combine(ruta_base, $"ReporteAsistencias_{DateTime.Now.ToString("yyyy-MM-dd hh-mm-ss tt")}.xlsx");
 
             IWorkbook workbook;
             workbook = new XSSFWorkbook();
 
             //Estilo para las celdas de encabezado
-            byte[] rgb = new byte[3] { 163, 189, 49 };
-            NPOI.XSSF.UserModel.XSSFColor color = new NPOI.XSSF.UserModel.XSSFColor(rgb);
+            byte[] verde = new byte[3] { 163, 189, 49 };
+            NPOI.XSSF.UserModel.XSSFCellStyle boldStyle = UtilidadesExcel.createStyle(verde, workbook);
 
-            NPOI.XSSF.UserModel.XSSFCellStyle boldStyle = (NPOI.XSSF.UserModel.XSSFCellStyle)workbook.CreateCellStyle();
-            boldStyle.SetFillForegroundColor(color);
-            boldStyle.FillPattern = FillPattern.SolidForeground;
-            boldStyle.Alignment = HorizontalAlignment.Center;
-            boldStyle.VerticalAlignment = VerticalAlignment.Center;
-            IFont font = workbook.CreateFont();
-            font.Color = NPOI.SS.UserModel.IndexedColors.White.Index;
-            boldStyle.SetFont(font);
+
+            //Estilo para las celdas rojo
+            byte[] rojo = new byte[3] { 201, 18, 18 };
+            NPOI.XSSF.UserModel.XSSFCellStyle boldStyle_rojo = UtilidadesExcel.createStyle(rojo, workbook);
+
 
             #region Pestaña 1 - Asistencias
 
@@ -764,6 +561,18 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             celda = encabezado.CreateCell(column);
             celda.SetCellValue("Registro");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Horario");
+            celda.CellStyle = boldStyle;
+            column++;
+            cantidadColumnas++;
+
+            celda = encabezado.CreateCell(column);
+            celda.SetCellValue("Estado");
             celda.CellStyle = boldStyle;
             column++;
             cantidadColumnas++;
@@ -843,15 +652,29 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 IRow fila = sheet.CreateRow(ROW);
 
                 celda = fila.CreateCell(column);
-                celda.SetCellValue(asistencia.fecha_adicion?.ToString("dd/MM/yyyy"));
+                celda.SetCellValue(asistencia.fecha_adicion?.ToString("dddd, dd MMMM yyyy", new CultureInfo("es-ES")));
                 column++;
 
                 celda = fila.CreateCell(column);
-                celda.SetCellValue(asistencia.fecha_adicion?.ToString("HH:mm tt"));
+                celda.SetCellValue(asistencia.fecha_adicion?.ToString("hh:mm tt"));
                 column++;
 
                 celda = fila.CreateCell(column);
                 celda.SetCellValue(asistencia.tipo_reporte);
+                column++;
+
+                celda = fila.CreateCell(column);
+                celda.SetCellValue(GetHorarioRegistroAsistencia(asistencia));
+                column++;
+
+                string c = GetColorAsistencia(asistencia);
+
+                celda = fila.CreateCell(column);
+
+                if (c.Equals("green")) celda.CellStyle = boldStyle;
+                else if (c.Equals("red")) celda.CellStyle = boldStyle_rojo;
+
+                celda.SetCellValue("");
                 column++;
 
                 celda = fila.CreateCell(column);
@@ -864,6 +687,10 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
                 celda = fila.CreateCell(column);
                 celda.SetCellValue(asistencia.nombres);
+                column++;
+
+                celda = fila.CreateCell(column);
+                celda.SetCellValue(asistencia.apellidos);
                 column++;
 
                 celda = fila.CreateCell(column);
@@ -914,6 +741,125 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             {
                 ruta_absoluta = ruta_reporte
             };
+        }
+
+        private string GetHorarioRegistroAsistencia(RegistroAsistenciaDTO registro)
+        {
+            if (!registro.tipo_reporte.Equals("Entrada") && !registro.tipo_reporte.Equals("Salida"))
+            {
+                return "";
+            }
+
+            TimeSpan? hora = null;
+
+            List<DayOfWeek> l_v = new List<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
+            List<DayOfWeek> s = new List<DayOfWeek> { DayOfWeek.Saturday };
+
+            DayOfWeek dia = registro.fecha_adicion.GetValueOrDefault().DayOfWeek;
+
+            if (l_v.Contains(dia)) //Lunes a viernes
+            {
+                if (registro.tipo_reporte.Equals("Entrada"))
+                {
+                    hora = registro.hora_entrada_lv;
+                }
+                else if (registro.tipo_reporte.Equals("Salida"))
+                {
+                    hora = registro.hora_salida_lv;
+                }
+            }
+            else if (s.Contains(dia)) //Sábados
+            {
+                if (registro.tipo_reporte.Equals("Entrada"))
+                {
+                    hora = registro.hora_entrada_s;
+                }
+                else if (registro.tipo_reporte.Equals("Salida"))
+                {
+                    hora = registro.hora_salida_s;
+                }
+            }
+            else
+            {
+                return "";
+            }
+
+            if (hora is null) return "";
+
+            return DateTime.Now.Date.Add(hora.GetValueOrDefault()).ToString("hh:mm tt");
+
+        }
+
+        private string GetColorAsistencia(RegistroAsistenciaDTO registro)
+        {
+            if (!registro.tipo_reporte.Equals("Entrada") && !registro.tipo_reporte.Equals("Salida"))
+            {
+                return "gray";
+            }
+
+            TimeSpan? hora = null;
+
+            List<DayOfWeek> l_v = new List<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
+            List<DayOfWeek> s = new List<DayOfWeek> { DayOfWeek.Saturday };
+
+            DayOfWeek dia = registro.fecha_adicion.GetValueOrDefault().DayOfWeek;
+
+            if (l_v.Contains(dia)) //Lunes a viernes
+            {
+                if (registro.tipo_reporte.Equals("Entrada"))
+                {
+                    hora = registro.hora_entrada_lv;
+                }
+                else if (registro.tipo_reporte.Equals("Salida"))
+                {
+                    hora = registro.hora_salida_lv;
+                }
+            }
+            else if (s.Contains(dia)) //Sábados
+            {
+                if (registro.tipo_reporte.Equals("Entrada"))
+                {
+                    hora = registro.hora_entrada_s;
+                }
+                else if (registro.tipo_reporte.Equals("Salida"))
+                {
+                    hora = registro.hora_salida_s;
+                }
+            }
+            else
+            {
+                return "gray";
+            }
+
+            if (hora is null) return "gray";
+
+            TimeSpan hora_registro = registro.fecha_adicion.GetValueOrDefault().TimeOfDay;
+
+            if (registro.tipo_reporte.Equals("Entrada"))
+            {
+                if (hora_registro > hora)
+                {
+                    return "red";
+                }
+                else
+                {
+                    return "green";
+                }
+            }
+            else if (registro.tipo_reporte.Equals("Salida"))
+            {
+                if (hora_registro < hora)
+                {
+                    return "red";
+                }
+                else
+                {
+                    return "green";
+                }
+            }
+
+            return "gray";
+
         }
 
         public async Task<IEnumerable<Colaborador>> consultarJefesInmediatos()

@@ -86,61 +86,9 @@ function LoadingSwal(title, mensaje) {
     }).then((result) => {
         /* Read more about handling dismissals below */
         if (result.dismiss === Swal.DismissReason.timer) {
-            
+
         }
     })
-}
-
-var loadJS = function (url, implementationCode, location) {
-    //url is URL of external file, implementationCode is the code
-    //to be called from the file, location is the location to 
-    //insert the <script> element
-
-    var scriptTag = document.createElement('script');
-    scriptTag.src = url;
-
-    scriptTag.onload = implementationCode;
-    scriptTag.onreadystatechange = implementationCode;
-
-    document.body.appendChild(scriptTag);
-};
-
-// loadScript: returns a promise that completes when the script loads
-window.loadScriptV = function (scriptPath) {
-    //// check list - if already loaded we can ignore
-    if (loaded[scriptPath]) {
-        
-        // return 'empty' promise
-        return new this.Promise(function (resolve, reject) {
-            resolve();
-        });
-    }
-
-    return new Promise(function (resolve, reject) {
-        // create JS library script element
-        var script = document.createElement("script");
-        script.src = scriptPath;
-        script.type = "text/javascript";
-        
-
-        // flag as loading/loaded
-        loaded[scriptPath] = true;
-
-        // if the script returns okay, return resolve
-        script.onload = function () {
-            
-            resolve(scriptPath);
-        };
-
-        // if it fails, return reject
-        script.onerror = function () {
-            console.log(scriptPath + " load failed");
-            reject(scriptPath);
-        }
-
-        // scripts will load at end of body
-        document["body"].appendChild(script);
-    });
 }
 
 // loadScript: returns a promise that completes when the script loads
@@ -159,14 +107,14 @@ window.loadScript = function (scriptPath) {
         var script = document.createElement("script");
         script.src = scriptPath;
         script.type = "text/javascript";
-        
+
 
         // flag as loading/loaded
         loaded[scriptPath] = true;
 
         // if the script returns okay, return resolve
         script.onload = function () {
-            
+
             resolve(scriptPath);
         };
 
@@ -182,17 +130,6 @@ window.loadScript = function (scriptPath) {
 }
 // store list of what scripts we've loaded
 loaded = [];
-
-function removeJS(filename) {
-    var tags = document.getElementsByTagName('script');
-    for (var i = tags.length; i >= 0; i--) { //search backwards within nodelist for matching elements to remove
-        if (tags[i] && tags[i].getAttribute('src') != null && tags[i].getAttribute('src').indexOf(filename) != -1) {
-            tags[i].parentNode.removeChild(tags[i]); //remove element by calling parentNode.removeChild()
-            
-        }
-
-    }
-}
 
 function CloseModal(modalId) {
     $(modalId).modal('hide');
@@ -295,50 +232,7 @@ window.getIpAddress = () => {
             resolve(data.ip);
         });
     });
-    
-}
 
-function getPosition() {
-    return new Promise((resolve, reject) => {
-        var jsonData = [];
-
-        var permitida = false;
-        var latitud = "";
-        var longitud = "";
-        navigator.geolocation.getCurrentPosition(function (posicion) {
-            latitud = posicion.coords.latitude;
-            longitud = posicion.coords.longitude;
-            permitida = true;
-
-            jsonData.push({
-                permitida: permitida,
-                latitud: latitud,
-                longitud: longitud
-            });
-
-            var jsonString = JSON.stringify(jsonData, null, 2);
-            console.log(jsonString);
-            resolve(jsonString);
-        },
-            function (error) {
-                console.log(error);
-                if (error.code == error.PERMISSION_DENIED) {
-                    
-                }
-                permitida = false;
-                jsonData.push({
-                    permitida: permitida,
-                    latitud: latitud,
-                    longitud: longitud
-                });
-
-                var jsonString = JSON.stringify(jsonData, null, 2);
-                console.log(jsonString);
-                resolve(jsonString);
-            }
-        );
-    });
-    
 }
 
 function successToastr(mensaje) {
@@ -469,7 +363,7 @@ async function enviarDatos() {
         })
         .catch(function (error) {
             // Manejar errores de conexión o respuesta
-            console.error(error);
+            console.log(error);
         });
 }
 
@@ -486,5 +380,58 @@ function numberOnly(id) {
 }
 
 function replaceURL(newUrl) {
+
     window.history.replaceState({}, '', newUrl);
+
+}
+
+function getPosition() {
+    return new Promise((resolve, reject) => {
+        var jsonData = [];
+
+        var permitida = false;
+        var latitud = "";
+        var longitud = "";
+        navigator.geolocation.getCurrentPosition(function (posicion) {
+            latitud = posicion.coords.latitude;
+            longitud = posicion.coords.longitude;
+            permitida = true;
+
+            jsonData.push({
+                permitida: permitida,
+                latitud: latitud,
+                longitud: longitud
+            });
+
+            var jsonString = JSON.stringify(jsonData, null, 2);
+            resolve(jsonString);
+        },
+            function (error) {
+                console.log(error);
+                if (error.code == error.PERMISSION_DENIED) {
+
+                }
+                permitida = false;
+                jsonData.push({
+                    permitida: permitida,
+                    latitud: latitud,
+                    longitud: longitud
+                });
+
+                var jsonString = JSON.stringify(jsonData, null, 2);
+                console.log(jsonString);
+                resolve(jsonString);
+            }
+        );
+    });
+
+}
+
+function replaceURL(newUrl) {
+    window.history.replaceState({}, '', newUrl);
+}
+
+function focus(id) {
+    //document.getElementById(id).focus();
+    window.scrollTo(0, document.body.scrollHeight);
 }

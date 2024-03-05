@@ -5,6 +5,9 @@ namespace RegistroAsistenciasSMART.Web.Services
 {
     public class CircuitHandlerService : CircuitHandler
     {
+        /// <summary>
+        /// Identificador del circuito actual
+        /// </summary>
         public string CirtuidId { get; private set; }
 
         ICircuitUserService _userService;

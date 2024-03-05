@@ -1,0 +1,82 @@
+﻿h6 {
+    color: #545454;
+}
+
+.card {
+    border-radius: 16px !important;
+    text-align: center !important;
+    height: 100% !important;
+}
+
+.col-xl-3, .col-xl-4 {
+    margin-top: 5px !important;
+    margin-bottom: 5px !important;
+}
+
+
+@media only screen and (min-width: 1039px) {
+    .row {
+        margin-left: 3rem !important;
+        margin-right: 3rem !important;
+    }
+
+    .row-cards {
+        transform: translateY(-100px);
+    }
+}
+
+.card-body {
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+.card-img-actions > img {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+}
+
+a {
+    text-decoration: none !important;
+}
+
+span {
+    color: black !important;
+}
+
+a:hover > .card {
+    border: 2px solid #3FB294 !important;
+}
+
+/* Container holding the image and the text */
+.cont {
+    position: relative;
+    text-align: center;
+    color: white;
+    margin-bottom: 10px;
+}
+
+@media only screen and (max-width: 620px) {
+    .cont {
+        display: none !important;
+    }
+}
+
+/* Top left text */
+.top-left {
+    position: absolute;
+    top: 25px;
+    left: 35px;
+    color: white;
+    text-align: left !important;
+}
+
+
+    .top-left h5 {
+        font-weight: 300;
+        color: white !important;
+    }
+
+    .top-left h1 {
+        font-weight: 600;
+        color: white !important;
+    }

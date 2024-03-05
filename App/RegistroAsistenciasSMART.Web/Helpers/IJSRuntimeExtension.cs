@@ -1,7 +1,7 @@
-﻿using RegistroAsistenciasSMART.Model.Models.Configuracion.Perfilamiento;
-using RegistroAsistenciasSMART.Services.Interfaces.Auditoria;
+﻿using RegistroAsistenciasSMART.Services.Interfaces.Auditoria;
 using Microsoft.JSInterop;
 using Serilog;
+using RegistroAsistenciasSMART.Model.Models.Auditoria;
 
 namespace RegistroAsistenciasSMART.Web.Helpers
 {
@@ -13,7 +13,12 @@ namespace RegistroAsistenciasSMART.Web.Helpers
         {
             _auditoriaService = auditoriaService;
         }
-
+        /// <summary>
+        /// Muestra en pantalla una alerta <c>Sweet Alert</c> común
+        /// </summary>
+        /// <param name="titulo">Título de la alerta</param>
+        /// <param name="mensaje">Mensaje de la alerta</param>
+        /// <param name="tipoMensaje">Tipo de alerta, que se verá reflejada en el ícono de ésta</param>
         public static async Task SweetAlertUsual(this IJSRuntime jsRuntime, string titulo, string mensaje, TipoMensajeSweetAlert tipoMensaje)
         {
             try
@@ -25,7 +30,12 @@ namespace RegistroAsistenciasSMART.Web.Helpers
                 Log.Error(exe, "Error al ejecutar javascript");
             }
         }
-
+        /// <summary>
+        /// Muestra en pantalla una alerta <c>Sweet Alert</c> en la cual se puede mostrar contenido <c>HTML</c> en el mensaje
+        /// </summary>
+        /// <param name="titulo">Título de la alerta</param>
+        /// <param name="mensaje">Mensaje de la alerta en <c>HTML</c></param>
+        /// <param name="tipoMensaje">Tipo de alerta, que se verá reflejada en el ícono de ésta</param>
         public static async Task SweetAlertHtml(this IJSRuntime jsRuntime, string titulo, string mensaje, TipoMensajeSweetAlert tipoMensaje)
         {
             try
@@ -37,7 +47,13 @@ namespace RegistroAsistenciasSMART.Web.Helpers
                 Log.Error(exe, "Error al ejecutar javascript");
             }
         }
-
+        /// <summary>
+        /// Muestra una alerta Sweet Alert comúm, con un footer
+        /// </summary>
+        /// <param name="titulo">Título de la alerta</param>
+        /// <param name="mensaje">Mensaje de la alerta</param>
+        /// <param name="footer">Contenido del footer</param>
+        /// <param name="tipoMensaje">Tipo de alerta, que se verá reflejada en el ícono de ésta</param>
         public static async Task SweetAlertUsualWithFooter(this IJSRuntime jsRuntime, string titulo, string mensaje, string footer, TipoMensajeSweetAlert tipoMensaje)
         {
             try
@@ -50,18 +66,12 @@ namespace RegistroAsistenciasSMART.Web.Helpers
             }
         }
 
-        public static async Task SweetAlertBasico(this IJSRuntime jsRuntime, string message)
-        {
-            try
-            {
-                await jsRuntime.InvokeVoidAsync("Swal.fire", message);
-            }
-            catch (Exception exe)
-            {
-                Log.Error(exe, "Error al ejecutar javascript");
-            }
-        }
-
+        /// <summary>
+        /// Muestra una alerta Sweet Alerta de confirmación al usuario, en donde se tiene una elección SI/NO
+        /// </summary>
+        /// <param name="titulo">Título de la alerta</param>
+        /// <param name="mensaje">Mensaje de la alerta</param>
+        /// <param name="tipoMensaje">Tipo de alerta, que se verá reflejada en el ícono de ésta</param>
         public static async Task<bool> SweetAlertConfirm(this IJSRuntime jsRuntime, string titulo, string mensaje, TipoMensajeSweetAlert tipoMensaje)
         {
             try
@@ -75,7 +85,12 @@ namespace RegistroAsistenciasSMART.Web.Helpers
 
             return false;
         }
-
+        /// <summary>
+        /// Muestra una alerta de confirmación al usuario, en donde se espera una acción del usuario para continuar 
+        /// </summary>
+        /// <param name="titulo">Título de la alerta</param>
+        /// <param name="mensaje">Mensaje de la alerta</param>
+        /// <param name="tipoMensaje">Tipo de alerta, que se verá reflejada en el ícono de ésta</param>
         public static async Task<bool> SweetAlertConfirmSuccess(this IJSRuntime jsRuntime, string titulo, string mensaje, TipoMensajeSweetAlert tipoMensaje)
         {
             try
@@ -89,7 +104,11 @@ namespace RegistroAsistenciasSMART.Web.Helpers
 
             return false;
         }
-
+        /// <summary>
+        /// Muestra una alerta Sweet Alert de cargando
+        /// </summary>
+        /// <param name="titulo">Título de la alerta</param>
+        /// <param name="mensaje">Mensaje de la alerta</param>
         public static async Task SweetAlertLoading(this IJSRuntime jsRuntime, string titulo, string mensaje)
         {
             try
@@ -101,7 +120,9 @@ namespace RegistroAsistenciasSMART.Web.Helpers
                 Log.Error(exe, "Error al ejecutar javascript");
             }
         }
-
+        /// <summary>
+        /// Cierra cualquier alerta Sweet Alerta en pantalla
+        /// </summary>
         public static async Task SweetAlertClose(this IJSRuntime jsRuntime)
         {
             try
@@ -113,7 +134,11 @@ namespace RegistroAsistenciasSMART.Web.Helpers
                 Log.Error(exe, "Error al ejecutar javascript");
             }
         }
-
+        /// <summary>
+        /// Realiza la descarga de un archivo al cliente
+        /// </summary>
+        /// <param name="ruta">Ruta absoluta del archivo que se va a descargar</param>
+        /// <param name="nombre">Nombre con el que será descargado el archivo</param>
         public static async Task DescargarArchivo(this IJSRuntime jsRuntime, string ruta, string nombre)
         {
             if (!File.Exists(ruta)) throw new Exception($"La ruta especificada para el archivo para descargar {ruta} no existe");
@@ -121,16 +146,16 @@ namespace RegistroAsistenciasSMART.Web.Helpers
             try
             {
                 FileInfo fi = new FileInfo(ruta);
-                string ruta_destino = Directory.GetCurrentDirectory() + "\\wwwroot\\archivosTemporales";
-                if (!Directory.Exists(ruta_destino)) Directory.CreateDirectory(ruta_destino);
+                string ruta_destino = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "archivosTemporales");
+                Directory.CreateDirectory(ruta_destino);
 
-                string ruta_final = ruta_destino + "\\" + fi.Name;
+                string ruta_final = Path.Combine(ruta_destino, fi.Name);
 
-                if (File.Exists(ruta_final)) File.Delete(ruta_final);
 
-                File.Copy(ruta, ruta_final);
+                if (!ruta.Equals(ruta_final))
+                    File.Copy(ruta, ruta_final);
 
-                string ruta_cliente = ruta_final.Replace(Directory.GetCurrentDirectory() + "\\wwwroot\\", "").Replace("\\", "/");
+                string ruta_cliente = ruta_final.Replace(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "").Replace("\\", "/");
 
                 await jsRuntime.InvokeVoidAsync("downloadURI", ruta_cliente, nombre + fi.Extension);
 
@@ -153,10 +178,12 @@ namespace RegistroAsistenciasSMART.Web.Helpers
             catch (Exception exe)
             {
                 Log.Error(exe, "Error al ejecutar javascript");
-
             }
         }
-
+        /// <summary>
+        /// Obtiene la dirección IP del cliente
+        /// </summary>
+        /// <returns>Dirección IP del cliente</returns>
         public static async Task<string> GetIpAddress(this IJSRuntime jsRuntime)
         {
             try
@@ -172,7 +199,11 @@ namespace RegistroAsistenciasSMART.Web.Helpers
                 return string.Empty;
             }
         }
-
+        /// <summary>
+        /// Inicializa un timer de inactividad mediante javascript ayudado por una referencia <see cref="DotNetObjectReference{TValue}"/>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="dotNetObjectReference">Referencia DotNet </param>
         public static async Task InitializeInactivityTimer<T>(this IJSRuntime jsRuntime,
             DotNetObjectReference<T> dotNetObjectReference) where T : class
         {
@@ -185,7 +216,11 @@ namespace RegistroAsistenciasSMART.Web.Helpers
                 Log.Error(exe, "Error al ejecutar javascript");
             }
         }
-
+        /// <summary>
+        /// Inicializa una referencia <see cref="DotNetObjectReference{TValue}"/> para realizar un proceso de firma electrónica
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="dotNetObjectReference">Referencia DotNet </param>
         public static async Task InitializeDotnetHelperFirma<T>(this IJSRuntime jsRuntime,
             DotNetObjectReference<T> dotNetObjectReference) where T : class
         {
@@ -198,7 +233,9 @@ namespace RegistroAsistenciasSMART.Web.Helpers
                 Log.Error(exe, "Error al ejecutar javascript");
             }
         }
-
+        /// <summary>
+        /// Tipos de alertas disponibles para la librería <c>Sweet Alert</c>
+        /// </summary>
         public enum TipoMensajeSweetAlert
         {
             question, warning, error, success, info

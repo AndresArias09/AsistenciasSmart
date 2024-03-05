@@ -7,9 +7,13 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Sockets;
 using System.Net;
+using RegistroAsistenciasSMART.Model.Models.Auditoria;
 
 namespace RegistroAsistenciasSMART.Web.Controllers
 {
+    /// <summary>
+    /// Controlador mediante el cual el cliente interactuará con el servidor para obtener datos como la dirección IP o eventos de navegación
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class InfoController : ControllerBase
@@ -33,6 +37,10 @@ namespace RegistroAsistenciasSMART.Web.Controllers
             _userService = userService;
         }
 
+        /// <summary>
+        /// Retorna la dirección IP del cliente que realiza la petición
+        /// </summary>
+        /// <returns>Dirección IP del cliente</returns>
         [HttpGet]
         [Route("ipaddress")]
         public async Task<string> GetIpAddress()
@@ -50,6 +58,10 @@ namespace RegistroAsistenciasSMART.Web.Controllers
             return string.Empty;
         }
 
+        /// <summary>
+        /// Recieve distintos datos del cliente envíados por éste mediante un modelo <see cref="DatosClienteModel"/> para registrarlos como auditoría de navegación
+        /// </summary>
+        /// <param name="datosCliente">Modelo <see cref="DatosClienteModel"/></param>
         [HttpPost]
         [Route("sendClientInfo")]
         public async Task getClientInfo(DatosClienteModel datosCliente)
@@ -79,7 +91,6 @@ namespace RegistroAsistenciasSMART.Web.Controllers
                     AnchoPantalla = datosCliente.ResolucionPantalla.Ancho,
                     CookiesHabilitadas = datosCliente.CookiesHabilitadas,
                     Idioma = datosCliente.Idioma,
-                    idUsuario = idUsuario,
                     ip_address = remoteIpAddress.ToString(),
                     Latitud = datosCliente.Ubicacion.Latitud.ToString(),
                     Longitud = datosCliente.Ubicacion.Longitud.ToString(),

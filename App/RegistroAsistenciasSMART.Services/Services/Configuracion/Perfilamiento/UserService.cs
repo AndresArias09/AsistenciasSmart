@@ -15,115 +15,96 @@ using RegistroAsistenciasSMART.Data.Repositories.Interfaces.OTP;
 using RegistroAsistenciasSMART.Data.Repositories.Repositories.OTP;
 using RegistroAsistenciasSMART.Model.DTO;
 using RegistroAsistenciasSMART.Model.Models.Auditoria;
+using System.Text.RegularExpressions;
+using RegistroAsistenciasSMART.Model.Constantes;
 using Newtonsoft.Json;
-using NPOI.HPSF;
 
 namespace RegistroAsistenciasSMART.Services.Services.Configuracion.Perfilamiento
 {
+    /// <summary>
+    /// Implementación de la interfaz <see cref="IUserService"/>
+    /// </summary>
     public class UserService : IUserService
     {
+        private readonly List<string> dominios_permitidos = new List<string>()
+        {
+            "@smart.edu.co",
+            "@smartidiomas.edu.co"
+        };
+
         private readonly SqlConfiguration _sqlConfiguration;
         private readonly IUserRepository _userRepository;
-        private readonly IAuditoriaService _auditoriaService;
+        private readonly IOTPRepository _OTPRepository;
+
         private readonly IConfiguration _configuration;
         private readonly IEmailService _emailSender;
-        private readonly IEncryptService _encryptService;
-        private readonly NavigationManager _navigationManager;
-        private readonly IOTPRepository _OTPRepository;
+        private readonly IRolService _rolService;
+
         private readonly ILogger<UserService> _logger;
 
-        public UserService(SqlConfiguration sqlConfiguration, 
-            IConfiguration configuration, 
-            IEncryptService encrypt, 
-            IEmailService emailService, 
-            NavigationManager navigationManager, 
-            IAuditoriaService auditoriaService,
-            IEncryptService encryptService,
-            ILogger<UserService> logger)
+        public UserService
+        (
+            SqlConfiguration sqlConfiguration,
+            IConfiguration configuration,
+            IEmailService emailService,
+            IRolService rolService,
+            ILogger<UserService> logger
+        )
         {
             _sqlConfiguration = sqlConfiguration;
             _userRepository = new UserRepository(_sqlConfiguration.ConnectionString);
             _OTPRepository = new OTPRepository(_sqlConfiguration.ConnectionString);
-            _auditoriaService = auditoriaService;
             _configuration = configuration;
             _emailSender = emailService;
-            _navigationManager = navigationManager;
-            _encryptService = encryptService;
+            _rolService = rolService;
             _logger = logger;
         }
 
-		public IEnumerable<IpInfo> consultarIpsAutorizados()
-		{
-			var ips_json = System.IO.File.ReadAllText("ip_autorizadas.json");
-
-			List<IpInfo> ips = new List<IpInfo>();
-
-			ips = JsonConvert.DeserializeObject<List<IpInfo>>(ips_json) ?? ips;
-
-			return ips;
-		}
-
-
-		public IEnumerable<UserDTO> consultarUsuariosAutorizados()
+        public IEnumerable<IpInfo> consultarIpsAutorizados()
         {
-			var usuarios_json = System.IO.File.ReadAllText("usuarios_autorizados.json");
+            var ips_json = System.IO.File.ReadAllText("ip_autorizadas.json");
 
-			List<UserDTO> usuarios = new List<UserDTO>();
+            List<IpInfo> ips = new List<IpInfo>();
 
-			usuarios = JsonConvert.DeserializeObject<List<UserDTO>>(usuarios_json) ?? usuarios;
+            ips = JsonConvert.DeserializeObject<List<IpInfo>>(ips_json) ?? ips;
 
-			return usuarios;
-		}
-
+            return ips;
+        }
         public async Task<ResponseDTO> loginUsuario(UserDTO usuario, string ipAddress)
         {
-            try
+            if (!dominios_permitidos.Any(d => usuario.usuario.Contains(d)))
             {
-                if (!usuario.usuario.EndsWith("@smart.edu.co"))
-                {
-                    return new ResponseDTO() { estado = "ERROR",descripcion = "Usuario no autorizado"};
-                }
-
-                IEnumerable<UserDTO> usuarios_autorizados = consultarUsuariosAutorizados();
-
-                if(!usuarios_autorizados.Any(u => u.usuario.Equals(usuario.usuario)))
-                {
-                    return new ResponseDTO() { estado = "ERROR", descripcion = "Usuario no autorizado"};
-                }
-
-                Usuario user = await _userRepository.getUsuarioByUser(usuario.usuario);
-
-                if (user is null)
-                {
-                    await _userRepository.insertarUsuario(new Usuario()
-                    {
-                        usuario = usuario.usuario,
-                        email = usuario.usuario
-                    });
-                }
-
-                string id_auditoria = await _userRepository.registrarAuditoriaLogin(usuario.usuario, "Exitoso", ipAddress);
-                return new ResponseDTO() { estado = "OK", descripcion = id_auditoria };
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Usuario no autorizado" };
             }
-            catch(Exception exe)
+
+            Usuario user = await _userRepository.getUsuarioByUser(usuario.usuario);
+
+            if (user is null)
             {
-                _logger.LogError(exe, $"Error al realizar login para usuario {usuario.usuario}");
-                return new ResponseDTO()
-                {
-                    estado = "ERROR",
-                    descripcion = "Ocurrió un error al realizar el login",
-                };
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Usuario no autorizado" };
             }
-        }
 
-        public async Task<Usuario> getUsuario(string id_usuario)
-        {
-            return await _userRepository.getUsuarioById(id_usuario);
+            if (user.estado.Equals("2"))
+            {
+                await _userRepository.registrarAuditoriaLogin(usuario.usuario, "Error, el usuario está en estado inactivo", ipAddress);
+
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Usuario inactivo" };
+            }
+
+            string id_auditoria = await _userRepository.registrarAuditoriaLogin(usuario.usuario, "Exitoso", ipAddress);
+
+            return new ResponseDTO() { estado = "OK", descripcion = id_auditoria };
         }
 
         public async Task<Usuario> getUsuarioByUser(string usuario)
         {
-            return await _userRepository.getUsuarioByUser(usuario);
+            Usuario user = await _userRepository.getUsuarioByUser(usuario);
+
+            if (user is null) return user;
+
+            user.rol = await _rolService.getRol(user.id_rol);
+
+            return user;
         }
 
         public async Task<bool> registrarAuditoriaCierreSesion(string id_auditoria, string usuario, string ip, string motivo)
@@ -137,12 +118,12 @@ namespace RegistroAsistenciasSMART.Services.Services.Configuracion.Perfilamiento
             {
                 Usuario user = await _userRepository.getUsuarioByUser(nombre_usuario);
 
-                if(user is null)
+                if (user is null)
                 {
                     return new ResponseDTO() { estado = "ERROR", descripcion = "El usuario no existe" };
                 }
 
-                if(string.IsNullOrEmpty(user.email))
+                if (string.IsNullOrEmpty(user.email))
                 {
                     return new ResponseDTO() { estado = "ERROR", descripcion = "El usuario no posee correo electrónico" };
                 }
@@ -153,9 +134,9 @@ namespace RegistroAsistenciasSMART.Services.Services.Configuracion.Perfilamiento
                 string nombre_cliente = _configuration.GetSection("DatosAplicativo:NombreCliente").Value;
                 string nombre_aplicativo = _configuration.GetSection("DatosAplicativo:NombreAplicativo").Value;
 
-                #region Cuerpo correo
+				#region Cuerpo correo
 
-                string cuerpoCorreo = @$"<!DOCTYPE HTML
+				string cuerpoCorreo = @$"<!DOCTYPE HTML
                       PUBLIC ""-//W3C//DTD XHTML 1.0 Transitional //EN"" ""http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"">
                     <html xmlns=""http://www.w3.org/1999/xhtml"" xmlns:v=""urn:schemas-microsoft-com:vml""
                       xmlns:o=""urn:schemas-microsoft-com:office:office"">
@@ -383,10 +364,10 @@ namespace RegistroAsistenciasSMART.Services.Services.Configuracion.Perfilamiento
 
                                                   <!--[if mso]><style>.v-button {{background: transparent !important;}}</style><![endif]-->
                                                   <div align=""center"">
-                                                    <!--[if mso]><v:roundrect xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:w=""urn:schemas-microsoft-com:office:word"" href=""https://unlayer.com"" style=""height:42px; v-text-anchor:middle; width:216px;"" arcsize=""0%""  strokecolor=""#000000"" strokeweight=""2px"" fillcolor=""#ffffff""><w:anchorlock/><center style=""color:#000000;""><![endif]-->
-                                                    <a href=""https://unlayer.com"" target=""_blank"" class=""v-button""
+                                                    <!--[if mso]><v:roundrect xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:w=""urn:schemas-microsoft-com:office:word"" href="""" style=""height:42px; v-text-anchor:middle; width:216px;"" arcsize=""0%""  strokecolor=""#000000"" strokeweight=""2px"" fillcolor=""#ffffff""><w:anchorlock/><center style=""color:#000000;""><![endif]-->
+                                                    <a href="""" target=""_blank"" class=""v-button""
                                                       style=""box-sizing: border-box;display: inline-block;text-decoration: none;-webkit-text-size-adjust: none;text-align: center;color: #000000; background-color: #ffffff; border-radius: 0px;-webkit-border-radius: 0px; -moz-border-radius: 0px; width:38%; max-width:100%; overflow-wrap: break-word; word-break: break-word; word-wrap:break-word; mso-border-alt: none;border-top-color: #000000; border-top-style: solid; border-top-width: 2px; border-left-color: #000000; border-left-style: solid; border-left-width: 2px; border-right-color: #000000; border-right-style: solid; border-right-width: 2px; border-bottom-color: #000000; border-bottom-style: solid; border-bottom-width: 2px;font-size: 18px;"">
-                                                      <span style=""display:block;padding:10px 20px;line-height:120%;"">"+otp_code+@"</span>
+                                                      <span style=""display:block;padding:10px 20px;line-height:120%;"">" + otp_code + @"</span>
                                                     </a>
                                                     <!--[if mso]></center></v:roundrect><![endif]-->
                                                   </div>
@@ -406,7 +387,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Configuracion.Perfilamiento
 
                                                   <div
                                                     style=""font-size: 14px; line-height: 140%; text-align: center; word-wrap: break-word;"">
-                                                    <p style=""line-height: 140%;"">Usa este código para completar tu inicio de sesión en el aplicativo "+nombre_aplicativo+@".</p>
+                                                    <p style=""line-height: 140%;"">Usa este código para completar tu inicio de sesión en el aplicativo " + nombre_aplicativo + @".</p>
                                                     <p style=""line-height: 140%;"">El código es válido por 5 minutos</p>
                                                   </div>
 
@@ -538,9 +519,9 @@ namespace RegistroAsistenciasSMART.Services.Services.Configuracion.Perfilamiento
 
                     </html>";
 
-                #endregion
+				#endregion
 
-                EmailInfo emailInfo = new EmailInfo();
+				EmailInfo emailInfo = new EmailInfo();
 
                 emailInfo.asunto = $"{nombre_aplicativo} - Verificación de Identidad";
                 emailInfo.pantalla = "Login";
@@ -602,7 +583,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Configuracion.Perfilamiento
             }
 
             //OTP mayor a 5 minutos
-            if ((DateTime.Now - lastOTP.fecha_adicion).TotalSeconds > (5 * 60))
+            if ((DateTime.Now - lastOTP.fecha_adicion).TotalSeconds > 5 * 60)
             {
                 return new ResponseDTO() { estado = "ERROR", descripcion = "El código ha expirado, por favor solicite uno nuevo" };
             }
@@ -615,6 +596,103 @@ namespace RegistroAsistenciasSMART.Services.Services.Configuracion.Perfilamiento
         public async Task procesarIngreso(string usuario, string ip_address, string descripcion)
         {
             await _userRepository.registrarAuditoriaLogin(usuario, descripcion, ip_address);
+        }
+
+        public async Task<IEnumerable<Usuario>> getUsuarios()
+        {
+            IEnumerable<Usuario> usuarios = await _userRepository.getUsuarios();
+
+            foreach (var usuario in usuarios)
+            {
+                usuario.rol = await _rolService.getRol(usuario.id_rol);
+            }
+
+            return usuarios;
+        }
+
+        public async Task<ResponseDTO> insertarUsuario(Usuario usuario, string ipAddress, string usuarioAccion)
+        {
+            ResponseDTO respuesta_validacion = validarInfoUsuario(usuario);
+
+            if (!respuesta_validacion.estado.Equals("OK")) return respuesta_validacion;
+
+            Usuario user = await _userRepository.getUsuarioByUser(usuario.usuario);
+
+            if (user is null)
+            {
+                usuario.usuario_adiciono = usuarioAccion;
+
+                long id_usuario = await _userRepository.insertarUsuario(usuario);
+
+                if (id_usuario <= 0)
+                {
+                    return new ResponseDTO() { estado = "ERROR", descripcion = "No ha sido posible guardar la información del usuario" };
+                }
+            }
+            else
+            {
+                if (!await _userRepository.actualizarUsuario(usuario))
+                {
+                    return new ResponseDTO() { estado = "ERROR", descripcion = "No ha sido posible actualizar la información del usuario" };
+                }
+            }
+
+            return new ResponseDTO() { estado = "OK" };
+        }
+
+        public ResponseDTO validarInfoUsuario(Usuario usuario)
+        {
+            if (string.IsNullOrEmpty(usuario.nombres))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar los nombres del usuario" };
+            }
+
+            if (string.IsNullOrEmpty(usuario.apellidos))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar los apellidos del usuario" };
+            }
+
+            if (string.IsNullOrEmpty(usuario.usuario))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el nombre de usuario del usuario" };
+            }
+
+            if (string.IsNullOrEmpty(usuario.email))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el correo electrónico del usuario" };
+            }
+
+            if (!Regex.Match(usuario.email, RegexConstants.EMAIL_REGEX).Success)
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = $"Formato de correo incorrecto para el correo electrónico del usuario" };
+            }
+
+            if (string.IsNullOrEmpty(usuario.estado))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el estado del usuario" };
+            }
+
+            if (usuario.id_rol <= 0)
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el rol del usuario" };
+            }
+
+            if (string.IsNullOrEmpty(usuario.area))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar área a la que pertenece el usuario" };
+            }
+
+            if (string.IsNullOrEmpty(usuario.cargo))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el cargo que desempeña el usuario" };
+            }
+
+            if (!dominios_permitidos.Any(d => usuario.usuario.Contains(d)))
+            {
+                return new ResponseDTO() { estado = "ERROR", descripcion = "Correo electrónico no permitido" };
+            }
+
+            return new ResponseDTO() { estado = "OK" };
         }
     }
 }

@@ -11,6 +11,9 @@ using RegistroAsistenciasSMART.Model.Models.Colaboradores;
 
 namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
 {
+    /// <summary>
+    /// Implementación de la interfaz <see cref="IColaboradorRepository"/> con el motor de base de datos PostgreSQL
+    /// </summary>
     public class ColaboradorRepository : PostgreSQLRepository, IColaboradorRepository
     {
         public ColaboradorRepository(string connection_string)
@@ -155,7 +158,7 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
             p.Add("@p_estado", colaborador.estado);
             p.Add("@p_usuario_adiciono", colaborador.usuario_adiciono);
             p.Add("@p_hora_entrada_lv", colaborador.hora_entrada_lv);
-            p.Add("@p_hora_salida_lv", colaborador.hora_entrada_lv);
+            p.Add("@p_hora_salida_lv", colaborador.hora_salida_lv);
             p.Add("@p_hora_entrada_s", colaborador.hora_entrada_s);
             p.Add("@p_hora_salida_s", colaborador.hora_salida_s);
 
@@ -195,7 +198,7 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
             p.Add("@p_correo", colaborador.correo);
             p.Add("@p_estado", colaborador.estado);
             p.Add("@p_hora_entrada_lv", colaborador.hora_entrada_lv);
-            p.Add("@p_hora_salida_lv", colaborador.hora_entrada_lv);
+            p.Add("@p_hora_salida_lv", colaborador.hora_salida_lv);
             p.Add("@p_hora_entrada_s", colaborador.hora_entrada_s);
             p.Add("@p_hora_salida_s", colaborador.hora_salida_s);
 
@@ -227,7 +230,7 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
 	                        sede,
 	                        tipo_reporte,
 	                        latitud,
-	                        lontitud,
+	                        longitud,
 	                        ip_address
                         )
                         values
@@ -237,7 +240,7 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
 	                        @p_sede,
 	                        @p_tipo_reporte,
 	                        @p_latitud,
-	                        @p_lontitud,
+	                        @p_longitud,
 	                        @p_ip_address
 
                         );";
@@ -248,7 +251,7 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
             p.Add("@p_sede", registro.sede);
             p.Add("@p_tipo_reporte", registro.tipo_reporte);
             p.Add("@p_latitud", registro.latitud);
-            p.Add("@p_lontitud", registro.longitud);
+            p.Add("@p_longitud", registro.longitud);
             p.Add("@p_ip_address", registro.ip_address);
 
             var result = await db.ExecuteAsync(sql, p);
@@ -270,10 +273,14 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
                             ra.tipo_reporte,
                             c.correo,
                             ra.latitud,
-                            ra.lontitud,
+                            ra.longitud,
                             ra.ip_address,
                             c.cargo,
-                            c.jefe_inmediato
+                            c.jefe_inmediato,
+                            c.hora_entrada_lv,
+                            c.hora_salida_lv,
+                            c.hora_entrada_s,
+                            c.hora_salida_s
                         from 
                         asistencia.colaborador c 
                         inner join asistencia.registro_asistencia ra on c.cedula = ra.cedula_colaborador 
@@ -322,7 +329,7 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
 
             if (filtros.jefe_inmediato is not null)
             {
-                sql += " and c.jefe_inmediato = @sede";
+                sql += " and c.jefe_inmediato = @jefe";
             }
 
             if (!string.IsNullOrEmpty(filtros.cargo))

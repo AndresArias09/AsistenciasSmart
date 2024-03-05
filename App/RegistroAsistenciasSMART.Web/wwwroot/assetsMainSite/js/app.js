@@ -61,41 +61,56 @@ const App = function () {
         // Elements
         const sidebarMainElement = document.querySelector('.sidebar-main'),
               sidebarMainToggler = document.querySelectorAll('.sidebar-main-resize'),
+              sidebarMobileTogglerClass = 'sidebar-mobile-expanded',
               resizeClass = 'sidebar-main-resized',
-              unfoldClass = 'sidebar-main-unfold';
+              navSubmenuClass = 'nav-group-sub',
+              navSubmenuReversedClass = 'nav-group-sub-reversed',
+              submenuToggleClass = 'nav-group-sub-visible',
+              submenuElement = document.querySelectorAll('.sidebar-main .nav-sidebar > .nav-item-submenu');
 
+        // Check if submenu is still in the viewport
+        function isInViewport(element) {
+            const rect = element.getBoundingClientRect();
+            return (
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+            );
+        }
 
-        // Config
-        if (sidebarMainElement) {
-
-            // Define variables
-            const unfoldDelay = 150;
-            let timerStart,
-                timerFinish;
-
-            // Toggle classes on click
+        // Toggle small sidebar
+        if(sidebarMainToggler) {
             sidebarMainToggler.forEach(function(toggler) {
                 toggler.addEventListener('click', function(e) {
                     e.preventDefault();
                     sidebarMainElement.classList.toggle(resizeClass);
-                    !sidebarMainElement.classList.contains(resizeClass) && sidebarMainElement.classList.remove(unfoldClass);
+                    sidebarMainElement.classList.remove(sidebarMobileTogglerClass);
+                    !sidebarMainElement.classList.contains(resizeClass) && sidebarMainElement.classList.remove(resizeClass);
                 });                
             });
+        }
 
-            // Add class on mouse enter
-            sidebarMainElement.addEventListener('mouseenter', function() {
-                clearTimeout(timerFinish);
-                timerStart = setTimeout(function() {
-                    sidebarMainElement.classList.contains(resizeClass) && sidebarMainElement.classList.add(unfoldClass);
-                }, unfoldDelay);
-            });
+        // Configure submenus
+        if(submenuElement) {
+            submenuElement.forEach(function(toggle) {
+                const sub = toggle.querySelector(`:scope > .${navSubmenuClass}`);
 
-            // Remove class on mouse leave
-            sidebarMainElement.addEventListener('mouseleave', function() {
-                clearTimeout(timerStart);
-                timerFinish = setTimeout(function() {
-                    sidebarMainElement.classList.remove(unfoldClass);
-                }, unfoldDelay);
+                // Display submenu on mouseenter
+                toggle.addEventListener('mouseenter', function() {
+                    if (sidebarMainElement.classList.contains(resizeClass)) {
+                        this.classList.add(submenuToggleClass);
+                        this.querySelector(':scope > .nav-link').classList.add('pe-none');
+                        !isInViewport(sub) && sub.classList.add(navSubmenuReversedClass);
+                    }
+                });
+
+                // Hide submenu on mouse leave
+                toggle.addEventListener('mouseleave', function() {
+                    this.classList.remove(submenuToggleClass);
+                    this.querySelector(':scope > .nav-link').classList.remove('pe-none');
+                    sub.classList.remove(navSubmenuReversedClass);
+                });
             });
         }
     };
@@ -105,7 +120,7 @@ const App = function () {
 
         // Elements
         const sidebarMainElement = document.querySelector('.sidebar-main'),
-              sidebarMainRestElements = document.querySelectorAll('.sidebar:not(.sidebar-main):not(.sidebar-component)'),
+              sidebarMainRestElements = document.querySelectorAll('.sidebar:not(.sidebar-main)'),
               sidebarMainDesktopToggler = document.querySelectorAll('.sidebar-main-toggle'),
               sidebarMainMobileToggler = document.querySelectorAll('.sidebar-mobile-main-toggle'),
               sidebarCollapsedClass = 'sidebar-collapsed',
@@ -137,7 +152,7 @@ const App = function () {
 
         // Elements
         const sidebarSecondaryElement = document.querySelector('.sidebar-secondary'),
-              sidebarSecondaryRestElements = document.querySelectorAll('.sidebar:not(.sidebar-secondary):not(.sidebar-component)'),
+              sidebarSecondaryRestElements = document.querySelectorAll('.sidebar:not(.sidebar-secondary)'),
               sidebarSecondaryDesktopToggler = document.querySelectorAll('.sidebar-secondary-toggle'),
               sidebarSecondaryMobileToggler = document.querySelectorAll('.sidebar-mobile-secondary-toggle'),
               sidebarCollapsedClass = 'sidebar-collapsed',
@@ -169,7 +184,7 @@ const App = function () {
 
         // Elements
         const sidebarRightElement = document.querySelector('.sidebar-end'),
-              sidebarRightRestElements = document.querySelectorAll('.sidebar:not(.sidebar-end):not(.sidebar-component)'),
+              sidebarRightRestElements = document.querySelectorAll('.sidebar:not(.sidebar-end)'),
               sidebarRightDesktopToggler = document.querySelectorAll('.sidebar-end-toggle'),
               sidebarRightMobileToggler = document.querySelectorAll('.sidebar-mobile-end-toggle'),
               sidebarCollapsedClass = 'sidebar-collapsed',
@@ -196,29 +211,9 @@ const App = function () {
         });
     };
 
-    // Toggle component sidebar
-    const sidebarComponentToggle = function() {
-
-        // Elements
-        const sidebarComponentElement = document.querySelector('.sidebar-component'),
-              sidebarComponentMobileToggler = document.querySelectorAll('.sidebar-mobile-component-toggle'),
-              sidebarMobileExpandedClass = 'sidebar-mobile-expanded';
-
-        // Toggle classes
-        sidebarComponentMobileToggler.forEach(function(toggler) {
-            toggler.addEventListener('click', function(e) {
-                e.preventDefault();
-                sidebarComponentElement.classList.toggle(sidebarMobileExpandedClass);
-            });                
-        });
-    };
-
-
-    // Navigations
-    // -------------------------
-
     // Sidebar navigation
     const navigationSidebar = function() {
+
         // Elements
         const navContainerClass = 'nav-sidebar',
               navItemOpenClass = 'nav-item-open',
@@ -228,14 +223,11 @@ const App = function () {
               navSubmenuClass = 'nav-group-sub',
               navScrollSpyClass = 'nav-scrollspy',
               sidebarNavElement = document.querySelectorAll(`.${navContainerClass}:not(.${navScrollSpyClass})`);
-        // Setup
-        sidebarNavElement.forEach(function (nav) {
-            console.log('Hola3');
-            nav.querySelectorAll(`.${navSubmenuContainerClass} > .${navLinkClass}:not(.${navLinkDisabledClass})`).forEach(function(link) {
 
-                console.log(link);
-                link.addEventListener('click', function (e) {
-                    console.log('Hola4');
+        // Setup
+        sidebarNavElement.forEach(function(nav) {
+            nav.querySelectorAll(`.${navSubmenuContainerClass} > .${navLinkClass}:not(.${navLinkDisabledClass})`).forEach(function(link) {
+                link.addEventListener('click', function(e) {
                     e.preventDefault();
                     const submenuContainer = link.closest(`.${navSubmenuContainerClass}`);
                     const submenu = link.closest(`.${navSubmenuContainerClass}`).querySelector(`:scope > .${navSubmenuClass}`);
@@ -275,9 +267,7 @@ const App = function () {
         const tooltipSelector = document.querySelectorAll('[data-bs-popup="tooltip"]');
 
         tooltipSelector.forEach(function(popup) {
-            new bootstrap.Tooltip(popup, {
-                boundary: '.page-content'
-            });
+            new bootstrap.Tooltip(popup);
         });
     };
 
@@ -286,9 +276,7 @@ const App = function () {
         const popoverSelector = document.querySelectorAll('[data-bs-popup="popover"]');
 
         popoverSelector.forEach(function(popup) {
-            new bootstrap.Popover(popup, {
-                boundary: '.page-content'
-            });
+            new bootstrap.Popover(popup);
         });
     };
 
@@ -296,54 +284,47 @@ const App = function () {
     const componentToTopButton = function() {
 
         // Elements
-        const toTopContainer = document.querySelector('.content-wrapper'),
-              toTopElement = document.createElement('button'),
+        const toTopElement = document.createElement('button'),
               toTopElementIcon = document.createElement('i'),
               toTopButtonContainer = document.createElement('div'),
               toTopButtonColorClass = 'btn-secondary',
               toTopButtonIconClass = 'ph-arrow-up',
-              scrollableContainer = document.querySelector('.content-inner'),
               scrollableDistance = 250,
               footerContainer = document.querySelector('.navbar-footer');
 
+        // Create button container
+        document.body.appendChild(toTopButtonContainer);
+        toTopButtonContainer.classList.add('btn-to-top');
 
-        // Append only if container exists
-        if (scrollableContainer) {
+        // Create button
+        toTopElement.classList.add('btn', toTopButtonColorClass, 'btn-icon', 'rounded-pill');
+        toTopElement.setAttribute('type', 'button');
+        toTopButtonContainer.appendChild(toTopElement);
+        toTopElementIcon.classList.add(toTopButtonIconClass);
+        toTopElement.appendChild(toTopElementIcon);
 
-            // Create button container
-            toTopContainer.appendChild(toTopButtonContainer);
-            toTopButtonContainer.classList.add('btn-to-top');
+        // Show and hide on scroll
+        const to_top_button = document.querySelector('.btn-to-top'),
+              add_class_on_scroll = () => to_top_button.classList.add('btn-to-top-visible'),
+              remove_class_on_scroll = () => to_top_button.classList.remove('btn-to-top-visible');
 
-            // Create button
-            toTopElement.classList.add('btn', toTopButtonColorClass, 'btn-icon', 'rounded-pill');
-            toTopElement.setAttribute('type', 'button');
-            toTopButtonContainer.appendChild(toTopElement);
-            toTopElementIcon.classList.add(toTopButtonIconClass);
-            toTopElement.appendChild(toTopElementIcon);
-
-            // Show and hide on scroll
-            const to_top_button = document.querySelector('.btn-to-top'),
-                  add_class_on_scroll = () => to_top_button.classList.add('btn-to-top-visible'),
-                  remove_class_on_scroll = () => to_top_button.classList.remove('btn-to-top-visible');
-
-            scrollableContainer.addEventListener('scroll', function() { 
-                const scrollpos = scrollableContainer.scrollTop;
-                scrollpos >= scrollableDistance ? add_class_on_scroll() : remove_class_on_scroll();
-                if(footerContainer) {
-                    if (this.scrollHeight - this.scrollTop - this.clientHeight <= footerContainer.clientHeight) {
-                        to_top_button.style.bottom = footerContainer.clientHeight + 20 + 'px';
-                    }
-                    else {
-                        to_top_button.removeAttribute('style');
-                    }
+        window.addEventListener('scroll', function() { 
+            const scrollpos = document.documentElement.scrollTop;
+            scrollpos >= scrollableDistance ? add_class_on_scroll() : remove_class_on_scroll();
+            if(footerContainer) {
+                if (document.documentElement.scrollHeight - document.documentElement.scrollTop - document.documentElement.clientHeight <= footerContainer.clientHeight) {
+                    to_top_button.style.bottom = footerContainer.clientHeight + 20 + 'px';
                 }
-            });
+                else {
+                    to_top_button.removeAttribute('style');
+                }
+            }
+        });
 
-            // Scroll to top on click
-            document.querySelector('.btn-to-top .btn').addEventListener('click', function() {
-                scrollableContainer.scrollTo(0, 0);
-            });
-        }
+        // Scroll to top on click
+        document.querySelector('.btn-to-top .btn').addEventListener('click', function() {
+            document.documentElement.scrollTo(0, 0);
+        });
     };
 
 
@@ -449,7 +430,6 @@ const App = function () {
               buttonContainerClass = 'd-inline-flex',
               cardFullscreenClass = 'card-fullscreen',
               collapsedClass = 'collapsed-in-fullscreen',
-              scrollableContainerClass = 'content-inner',
               fullscreenAttr = 'data-fullscreen';
 
         // Configure
@@ -469,7 +449,7 @@ const App = function () {
                     cardFullscreen.querySelectorAll(`:scope > .${collapsedClass}`).forEach(function(collapsedElement) {
                         collapsedElement.classList.remove('show');
                     });
-                    document.querySelector(`.${scrollableContainerClass}`).classList.remove('overflow-hidden');
+                    document.body.classList.remove('overflow-hidden');
                     button.closest(`.${buttonContainerClass}`).querySelectorAll(`:scope > .${buttonClass}:not(${buttonAttribute})`).forEach(function(actions) {
                         actions.classList.remove('d-none');
                     });
@@ -480,7 +460,7 @@ const App = function () {
                     cardFullscreen.querySelectorAll(`:scope > .collapse:not(.show)`).forEach(function(collapsedElement) {
                         collapsedElement.classList.add('show', `.${collapsedClass}`);
                     });
-                    document.querySelector(`.${scrollableContainerClass}`).classList.add('overflow-hidden');
+                    document.body.classList.add('overflow-hidden');
                     button.closest(`.${buttonContainerClass}`).querySelectorAll(`:scope > .${buttonClass}:not(${buttonAttribute})`).forEach(function(actions) {
                         actions.classList.add('d-none');
                     });
@@ -543,7 +523,6 @@ const App = function () {
     };
 
 
-
     //
     // Return objects assigned to module
     //
@@ -560,6 +539,7 @@ const App = function () {
         initAfterLoad: function() {
             transitionsEnabled();
         },
+
         // Initialize all components
         initComponents: function() {
             componentTooltip();
@@ -573,7 +553,6 @@ const App = function () {
             sidebarMainToggle();
             sidebarSecondaryToggle();
             sidebarRightToggle();
-            sidebarComponentToggle();
         },
 
         // Initialize all navigations
@@ -620,86 +599,20 @@ window.addEventListener('load', function() {
     App.initAfterLoad();
 });
 
-const navigationSidebar = function () {
-    console.log('Hola1');
-    // Elements
-    const navContainerClass = 'nav-sidebar',
-        navItemOpenClass = 'nav-item-open',
-        navLinkClass = 'nav-link',
-        navLinkDisabledClass = 'disabled',
-        navSubmenuContainerClass = 'nav-item-submenu',
-        navSubmenuClass = 'nav-group-sub',
-        navScrollSpyClass = 'nav-scrollspy',
-        sidebarNavElement = document.querySelectorAll(`.${navContainerClass}:not(.${navScrollSpyClass})`);
-    console.log('Hola2');
-    // Setup
-    sidebarNavElement.forEach(function (nav) {
-        console.log('Hola3');
-        nav.querySelectorAll(`.${navSubmenuContainerClass} > .${navLinkClass}:not(.${navLinkDisabledClass})`).forEach(function (link) {
+var menus = document.querySelectorAll('.dropdown-menu-end');
 
-            console.log(link);
-            link.addEventListener('click', function (e) {
-                console.log('Hola4');
-                e.preventDefault();
-                const submenuContainer = link.closest(`.${navSubmenuContainerClass}`);
-                const submenu = link.closest(`.${navSubmenuContainerClass}`).querySelector(`:scope > .${navSubmenuClass}`);
+document.getElementById('menu-drop').addEventListener('click', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
 
-                // Collapsible
-                if (submenuContainer.classList.contains(navItemOpenClass)) {
-                    new bootstrap.Collapse(submenu).hide();
-                    submenuContainer.classList.remove(navItemOpenClass);
-                }
-                else {
-                    new bootstrap.Collapse(submenu).show();
-                    submenuContainer.classList.add(navItemOpenClass);
-                }
 
-                // Accordion
-                if (link.closest(`.${navContainerClass}`).getAttribute('data-nav-type') == 'accordion') {
-                    for (let sibling of link.parentNode.parentNode.children) {
-                        if (sibling != link.parentNode && sibling.classList.contains(navItemOpenClass)) {
-                            sibling.querySelectorAll(`:scope > .${navSubmenuClass}`).forEach(function (submenu) {
-                                new bootstrap.Collapse(submenu).hide();
-                                sibling.classList.remove(navItemOpenClass);
-                            });
-                        }
-                    }
-                }
-            });
-        });
+    menus.forEach(function (menu) {
+        menu.classList.toggle("show");
     });
-};
+});
 
-const sidebarMainToggle = function () {
-
-    // Elements
-    const sidebarMainElement = document.querySelector('.sidebar-main'),
-        sidebarMainRestElements = document.querySelectorAll('.sidebar:not(.sidebar-main):not(.sidebar-component)'),
-        sidebarMainDesktopToggler = document.querySelectorAll('.sidebar-main-toggle'),
-        sidebarMainMobileToggler = document.querySelectorAll('.sidebar-mobile-main-toggle'),
-        sidebarCollapsedClass = 'sidebar-collapsed',
-        sidebarMobileExpandedClass = 'sidebar-mobile-expanded';
-
-    // On desktop
-    sidebarMainDesktopToggler.forEach(function (toggler) {
-        toggler.addEventListener('click', function (e) {
-            e.preventDefault();
-            sidebarMainElement.classList.toggle(sidebarCollapsedClass);
-        });
+$(".dropdown-item").on("click", function () {
+    menus.forEach(function (menu) {
+        menu.classList.toggle("show");
     });
-
-    // On mobile
-    sidebarMainMobileToggler.forEach(function (toggler) {
-        toggler.addEventListener('click', function (e) {
-            e.preventDefault();
-            sidebarMainElement.classList.toggle(sidebarMobileExpandedClass);
-
-            sidebarMainRestElements.forEach(function (sidebars) {
-                sidebars.classList.remove(sidebarMobileExpandedClass);
-            });
-        });
-    });
-};
-
-navigationSidebar();
-sidebarMainToggle();
+});

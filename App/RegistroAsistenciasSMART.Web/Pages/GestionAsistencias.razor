@@ -1,0 +1,1168 @@
+﻿@attribute [PageInfo(id_modulo = "5")]
+
+@page "/GestionAsistencias"
+
+@using RegistroAsistenciasSMART.Data.Repositories.Interfaces.Colaboradores
+@using RegistroAsistenciasSMART.Model.DTO
+@using RegistroAsistenciasSMART.Model.Models
+@using RegistroAsistenciasSMART.Model.Models.Colaboradores
+@using RegistroAsistenciasSMART.Services.Interfaces.Colaboradores
+@using System.Globalization
+
+@inject IColaboradorService _colaboradorService
+@inject ILogger<Home> _logger
+
+<div class="row">
+    <div class="card">
+        <div class="card-body">
+            <HeaderFirma ruta_volver="/Home"
+                         titulo="Gestión de asistencias">
+
+            </HeaderFirma>
+        </div>
+    </div>
+
+</div>
+
+
+<div class="row">
+    <div class="card">
+        <div class="card-header">
+            <h6 class="mb-0">Filtros</h6>
+        </div>
+
+        <div class="card-body">
+            <div class="col-md-12">
+                <input class="form-control" type="text" @bind="filtro" placeholder="Filtra por nombres, apellidos, correo..." @bind:event="onchange" @bind:after="Filtrar" />
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row">
+    <div class="card">
+        <div class="card-header">
+            <h6 class="mb-0">Colaboradores</h6>
+        </div>
+
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-around align-items-center align-content-center mb-3">
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Agregar nuevo colaborador" Click="@InsertRow" Disabled=@(colaboradorToInsert != null || colaboradorToUpdate != null) />
+                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="add_circle_outline" class="mt-2 mb-4" Text="Cargar colaboradores masivamente" Click=@(() => _modalCargueMasivo.abrirModal()) />
+                <button type="button" class="btn btn-primary" @onclick="LoadData">Actualizar</button>
+            </div>
+            
+            
+            <RadzenDataGridApp AllowVirtualization="false"
+                              ColumnWidth="200px"
+                               @ref="colaboradoresGrid"
+                               Data="@colaboradores_temp"
+                               TItem="Colaborador"
+                               IsLoading="@_isLoadingColaboradores"
+                               EditMode="DataGridEditMode.Single"
+                               RowUpdate="@OnUpdateRow"
+                               RowCreate="@OnCreateRow"
+                               Sort="@Reset"
+                               Page="@Reset"
+                               Filter="@Reset">
+                <Columns>
+                    <RadzenDataGridColumn TItem="Colaborador" Frozen="true" Context="Colaborador" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="200px">
+                        <Template Context="colaborador">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(colaborador))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            
+                        </Template>
+                        <EditTemplate Context="colaborador">
+                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(colaborador))">
+                            </RadzenButton>
+                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(colaborador))">
+                            </RadzenButton>
+
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="fecha_adicion" Title="Fecha de Adición">
+                        <EditTemplate Context="colaborador">
+                            <div style="text-align:center">
+                                @("-")
+                            </div>
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="cedula" Title="Cédula">
+                        <EditTemplate Context="colaborador">
+                            @if (colaboradorToUpdate is null)
+                            {
+                                <input type="number" class="form-control" @bind-value="colaborador.cedula" />
+                            }
+                            else
+                            {
+                                @colaborador.cedula
+                            }
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.cedula
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="nombres" Title="Nombres">
+                        <EditTemplate Context="colaborador">
+                            <input type="text" class="form-control" @bind-value="colaborador.nombres" />
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.nombres
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="apellidos" Title="Apellidos">
+                        <EditTemplate Context="colaborador">
+                            <input type="text" class="form-control" @bind-value="colaborador.apellidos" />
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.apellidos
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="cargo" Title="Cargo">
+                        <EditTemplate Context="colaborador">
+                            <input type="text" class="form-control" @bind-value="colaborador.cargo" />
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.cargo
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="area" Title="Área" Type="typeof(IEnumerable<string>)" FilterValue="@selectedAreaIds" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedAreaIds Style="width:100%;"
+                                            Change=@OnselectedAreaIdsChange Data="@(areas)" AllowClear="true" Multiple="true" />
+                        </FilterTemplate>
+                        <EditTemplate Context="colaborador">
+                            <input type="text" class="form-control" @bind-value="colaborador.area" />
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.area
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="jefe_inmediato" Title="Jefe Inmediato" Type="typeof(IEnumerable<long?>)" FilterValue="@selectedJefeIds" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown TValue="IEnumerable<long?>" SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedJefeIds Style="width:100%;"
+                                            Change=@OnselectedJefeIdsChange Data="@(jefes)" AllowClear="true" ValueProperty="cedula" Multiple="true" >
+                                <Template Context="jefe">
+                                    @jefe.nombres @jefe.apellidos
+                                </Template>
+                            </RadzenDropDown>
+                        </FilterTemplate>
+                        <EditTemplate Context="colaborador">
+                            <RadzenDropDown @bind-Value=@colaborador.jefe_inmediato TValue="long?" Data="@(colaboradores)" ValueProperty="cedula" AllowClear="true" Style="width: 100%">
+                                <Template>
+                                    @context.nombres @context.apellidos
+                                </Template>
+                            </RadzenDropDown>
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @{
+                                Colaborador jefe = colaboradores.FirstOrDefault(c => c.cedula == colaborador.jefe_inmediato);
+                            }
+
+                            @(
+                                jefe?.nombres + " " + jefe?.apellidos
+                            )
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="sede" Title="Sede" Type="typeof(IEnumerable<string>)" FilterValue="@selectedSedeIds" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedSedeIds Style="width:100%;"
+                                            Change=@OnselectedSedeIdsChange Data="@(sedes)" AllowClear="true" Multiple="true" >
+                                
+                            </RadzenDropDown>
+                        </FilterTemplate>
+                        <EditTemplate Context="colaborador">
+                            <RadzenAutoComplete @bind-Value=@colaborador.sede FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@sedes>
+
+                            </RadzenAutoComplete>
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.sede
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="correo" Title="Correo">
+                        <EditTemplate Context="colaborador">
+                            <input type="email" class="form-control" @bind-value="colaborador.correo" />
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.correo
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="estado" Title="Estado" Type="typeof(IEnumerable<long?>)" FilterValue="@selectedEstadoIds" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown TValue="IEnumerable<long?>" SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedEstadoIds Style="width:100%;"
+                                            Change=@OnselectedEstadoIdsChange Data="@(estados)" AllowClear="true" ValueProperty="id_estado" TextProperty="descripcion" Multiple="true" />
+                        </FilterTemplate>
+                        <EditTemplate Context="colaborador">
+                            <RadzenDropDown AllowClear="false" TValue="long?" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Class="form-control"
+                                            Placeholder="[Seleccionar]" @bind-value="colaborador.estado" Data=@estados TextProperty="descripcion" ValueProperty="id_estado" />
+                        </EditTemplate>
+                        <Template Context="data">
+                            <center>
+                                <div style='width: 30px; height: 30px; -moz-border-radius: 50%; -webkit-border-radius: 50%; border-radius: 50%; background: @(GetColor(data));'>
+                                </div>
+                            </center>
+                        </Template>
+                    </RadzenDataGridColumn>
+                   
+                    <RadzenDataGridColumn TItem="Colaborador" Title="Hora de entrada L-V">
+                        <EditTemplate Context="colaborador">
+                            <div class="div-hora">
+                                <input type="time" class="form-control" @bind-value="hora_entrada_lv" />
+                                <input type="image" src="./images/trash-icon.png" @onclick=@(() => hora_entrada_lv = null) />
+                            </div>
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @if (colaborador.hora_entrada_lv is not null)
+                            {
+                                @(DateTime.Now.Date.Add(colaborador.hora_entrada_lv.GetValueOrDefault()).ToString("hh:mm tt"))
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador"  Title="Hora de salida L-V">
+                        <EditTemplate Context="colaborador">
+                            <div class="div-hora">
+                                <input type="time" class="form-control" @bind-value="hora_salida_lv" />
+                                <input type="image" src="./images/trash-icon.png" @onclick=@(() => hora_salida_lv = null) />
+                            </div>
+                            
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @if (colaborador.hora_salida_lv is not null)
+                            {
+                                @(DateTime.Now.Date.Add(colaborador.hora_salida_lv.GetValueOrDefault()).ToString("hh:mm tt"))
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador"  Title="Hora de entrada Sábados">
+                        <EditTemplate Context="colaborador">
+                            <div class="div-hora">
+                                <input type="time" class="form-control" @bind-value="hora_entrada_s" />
+                                <input type="image" src="./images/trash-icon.png" @onclick=@(() => hora_entrada_s = null) />
+                            </div>
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @if (colaborador.hora_entrada_s is not null)
+                            {
+                                @(DateTime.Now.Date.Add(colaborador.hora_entrada_s.GetValueOrDefault()).ToString("hh:mm tt"))
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador"  Title="Hora de salida Sábados">
+                        <EditTemplate Context="colaborador">
+                            <div class="div-hora">
+                                <input type="time" class="form-control" @bind-value="hora_salida_s" />
+                                <input type="image" src="./images/trash-icon.png" @onclick=@(() => hora_salida_s = null) />
+                            </div>
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @if (colaborador.hora_salida_s is not null)
+                            {
+                                @(DateTime.Now.Date.Add(colaborador.hora_salida_s.GetValueOrDefault()).ToString("hh:mm tt"))
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador" Property="usuario_adiciono" Title="Usuario que adicionó">
+                        <EditTemplate Context="colaborador">
+                            @colaborador.usuario_adiciono
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @colaborador.usuario_adiciono
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGridApp>
+        </div>
+    </div>
+
+</div>
+
+<div class="row">
+    <div class="card">
+        <div class="card-header">
+            <h6 class="mb-0">Filtros</h6>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Fecha desde</label>
+                    <input class="form-control" type="date" @bind-value="filtros.fecha_desde" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Fecha hasta</label>
+                    <input class="form-control" type="date" @bind-value="filtros.fecha_hasta" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Cédula</label>
+                    <input class="form-control" type="text" @bind-value="filtros.cedula" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Nombres</label>
+                    <input class="form-control" type="text" @bind-value="filtros.nombres" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Apellidos</label>
+                    <input class="form-control" type="text" @bind-value="filtros.apellidos" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Cargo</label>
+                    <input class="form-control" type="text" @bind-value="filtros.cargo" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Área</label>
+                    <RadzenDropDown @bind-Value=@filtros.area TValue="string" Data="@(areas)" AllowClear="true" Style="width: 100%">
+                    </RadzenDropDown>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Sede</label>
+                    <RadzenDropDown @bind-Value=@filtros.sede TValue="string" Data="@(sedes)" AllowClear="true" Style="width: 100%">
+                    </RadzenDropDown>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tipo de reporte</label>
+                    <RadzenDropDown @bind-Value=@filtros.tipo_reporte TValue="string" Data="@(tipos_registro)" AllowClear="true" Style="width: 100%">
+                    </RadzenDropDown>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Jefe inmediato</label>
+                    <RadzenDropDown @bind-Value=@filtros.jefe_inmediato TValue="long?" Data="@(jefes)" ValueProperty="cedula" AllowClear="true" Style="width: 100%">
+                        <Template>
+                            @context.nombres @context.apellidos
+                        </Template>
+                    </RadzenDropDown>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Correo electrónico</label>
+                    <input class="form-control" type="text" @bind-value="filtros.correo" />
+                </div>
+            </div>
+            <br />
+            <button class="btn btn-primary" @onclick="LoadDataRegistrosAsistencias">Buscar</button>
+            <button class="btn btn-secondary" @onclick=@(() => filtros = new FiltroAsistencia())>Limpiar</button>
+        </div>
+    </div>
+
+</div>
+
+<div class="row" >
+    <div class="card">
+        <div class="card-header">
+            <h6 class="mb-0">Registro de Asistencia</h6>
+        </div>
+
+        <div class="card-body" >
+            <button id="tabla-asistencias" class="btn btn-primary mb-3" @onclick="DescargarExcelAsistencias">Reporte excel</button>
+            <RadzenDataGridApp ExpandMode="DataGridExpandMode.Multiple"
+                               Data="registros_asistencias"
+                               TItem="RegistroAsistenciaDTO"
+                               IsLoading=@_isLoadingRegistrosAsistencia>
+                <Columns>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" TextAlign="TextAlign.Center" Title="Ubicación">
+                        <Template Context="data">
+                            <input type="image" style="width:20px" src="images/maps.png" @onclick=@(() => VerUbicacion(data)) />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="fecha_adicion" Title="Fecha">
+                        <Template Context="data">
+                            @(Convert.ToDateTime(data.fecha_adicion).ToString("dddd, dd MMMM yyyy", new CultureInfo("es-ES")))
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="fecha_adicion" Title="Hora">
+                        <Template Context="data">
+                            @(Convert.ToDateTime(data.fecha_adicion).ToString("hh:mm tt"))
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="tipo_reporte" Title="Registro"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Title="Horario">
+                        <Template Context="data">
+                            @GetHorarioRegistroAsistencia(data)
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Title="Estado">
+                        <Template Context="data">
+                            <center>
+                                <div style='width: 30px; height: 30px; -moz-border-radius: 50%; -webkit-border-radius: 50%; border-radius: 50%; background: @(GetColorAsistencia(data));'>
+                                </div>
+                            </center>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="sede" Title="Sede"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="cedula" Title="Cédula"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="nombres" Title="Nombre"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="apellidos" Title="Apellidos"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="correo" Title="Correo institucional"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="cargo" Title="Cargo"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="jefe_inmediato" Title="Líder"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="area" Title="Subproceso"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="longitud" Title="Longitud"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="latitud" Title="Latitud"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="ip_address" Title="Dirección IP"></RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGridApp>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal cargue masivo progress-->
+<_ModalComponent @ref="_modalCargueMasivoProgress"
+                 _isLoading=@false
+                 titulo="Cargue Masivo"
+                 eventoAceptar=@(() => _modalCargueMasivoProgress.cerrarModal())
+                 width="1200">
+    <CuerpoModal>
+        <div class="row">
+            <div class="col-xl-3 col-sm-6">
+                <div class="card mini-stat bg-primary">
+                    <div class="card-body mini-stat-img">
+                        <div class="mini-stat-icon">
+                            <i class="mdi mdi-cube-outline float-end"></i>
+                        </div>
+                        <div class="text-white">
+                            <h6 class="text-uppercase mb-3 font-size-16 text-white">TOTAL REGISTROS</h6>
+                            <h2 class="mb-4 text-white">@datos_cargue_masivo.total_registros</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <div class="card mini-stat bg-primary">
+                    <div class="card-body mini-stat-img">
+                        <div class="mini-stat-icon">
+                            <i class="mdi mdi-buffer float-end"></i>
+                        </div>
+                        <div class="text-white">
+                            <h6 class="text-uppercase mb-3 font-size-16 text-white">REGISTROS CARGADOS</h6>
+                            <h2 class="mb-4 text-white">@datos_cargue_masivo.total_registros_procesados</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <div class="card mini-stat bg-primary">
+                    <div class="card-body mini-stat-img">
+                        <div class="mini-stat-icon">
+                            <i class="mdi mdi-tag-text-outline float-end"></i>
+                        </div>
+                        <div class="text-white">
+                            <h6 class="text-uppercase mb-3 font-size-16 text-white">REGISTROS NO CARGADOS</h6>
+                            <h2 class="mb-4 text-white">@datos_cargue_masivo.total_registros_no_procesados</h2>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <div class="card mini-stat bg-primary">
+                    <div class="card-body mini-stat-img">
+                        <div class="mini-stat-icon">
+                            <i class="mdi mdi-tag-text-outline float-end"></i>
+                        </div>
+                        <div class="text-white">
+                            <h6 class="text-uppercase mb-3 font-size-16 text-white">REGISTROS FALTANTES</h6>
+                            <h2 class="mb-4 text-white">@datos_cargue_masivo.total_faltantes</h2>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-12 col-sm-6">
+                <div class="card mini-stat bg-primary">
+                    <div class="card-body mini-stat-img">
+                        <div class="mini-stat-icon">
+                            <i class="mdi mdi-briefcase-check float-end"></i>
+                        </div>
+                        <div class="text-white">
+                            <h6 class="text-uppercase mb-3 font-size-16 text-white">ESTADO DEL CARGUE</h6>
+                            <h2 class="mb-4 text-white">@datos_cargue_masivo.estado</h2>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @if (datos_cargue_masivo.errores.Count > 0)
+            {
+                <div style="max-width:500px">
+                    <h4>Errores presentados en el archivo:</h4>
+                    @foreach (var error in datos_cargue_masivo.errores)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            Registro #@(error.numero_registro) (@error.identificador_registro) : @error.descripcion
+                        </div>
+                    }
+                </div> 
+            }
+            
+        </div>
+    </CuerpoModal>
+</_ModalComponent>
+
+<!-- Modal cargue masivo-->
+<_ModalComponent @ref="_modalCargueMasivo"
+                 _isLoading=@false
+                 titulo="Cargue Masivo"
+                 eventoAceptar=@CargueMasivoColaboradores
+                 width="700">
+    <CuerpoModal>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <InputFile id="fuFile" OnChange="OnInputFileChange" accept=".xlsx" />
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="d-flex flex-wrap justify-content-between">
+                    <button type="button" @onclick="DescargarPlantilla" class="btn btn-primary">Descargar Plantilla</button>
+                    <button type="button" @onclick="DescargarPlantillaEjemplo" class="btn btn-primary">Descargar Plantilla de ejemplo</button>
+                </div>
+            </div>
+        </div>
+    </CuerpoModal>
+</_ModalComponent>
+
+<!-- Modal maps-->
+<_ModalComponent @ref="_modalMaps"
+                 _isLoading=@_isLoadingMaps
+                 titulo=@titulo_modal_maps
+                 eventoAceptar=@(() => _modalMaps.cerrarModal())
+                 width="1000">
+    <CuerpoModal>
+        <center>
+            <RadzenGoogleMap @ref=map style="height: 400px" Options=@(new Dictionary<string, object> { { "disableDoubleClickZoom", true } })
+                             Zoom=@zoom Center=@(new GoogleMapPosition() { Lat = lat_maps, Lng = lng_maps })>
+                <Markers>
+                    <RadzenGoogleMapMarker Title=@titulo_marcador_maps Label=@titulo_marcador_maps Position=@(new GoogleMapPosition() { Lat = lat_maps, Lng = lng_maps }) />
+                </Markers>
+            </RadzenGoogleMap>
+        </center>
+    </CuerpoModal>
+</_ModalComponent>
+
+@code {
+
+    //Maps
+    RadzenGoogleMap map;
+    int zoom = 15;
+
+    private double lat_maps = 0;
+    private double lng_maps = 0;
+
+    private bool _isLoadingMaps = false;
+
+    private string titulo_marcador_maps = "";
+
+    private _ModalComponent _modalMaps;
+    private string titulo_modal_maps = "";
+
+    private TimeOnly? hora_entrada_lv;
+    private TimeOnly? hora_salida_lv;
+    private TimeOnly? hora_entrada_s;
+    private TimeOnly? hora_salida_s;
+
+    private void limpiarHoras()
+    {
+        hora_entrada_lv = null;
+        hora_salida_lv = null;
+        hora_entrada_s = null;
+        hora_salida_s = null;
+    }
+
+    private string filtro = "";
+
+    private FiltroAsistencia filtros = new FiltroAsistencia();
+
+    private bool _isLoadingColaboradores = true;
+    private bool _isLoadingRegistrosAsistencia = false;
+
+    IEnumerable<Colaborador> colaboradores;
+    IEnumerable<Colaborador> colaboradores_temp;
+
+    IEnumerable<RegistroAsistenciaDTO> registros_asistencias;
+
+    RadzenDataGrid<Colaborador> colaboradoresGrid;
+
+    Colaborador colaboradorToInsert;
+    Colaborador colaboradorToUpdate;
+
+    private IEnumerable<Colaborador> jefes = new List<Colaborador>();
+    private IEnumerable<string> sedes = new List<string>();
+    private IEnumerable<string> areas = new List<string>();
+
+    private IEnumerable<string> tipos_registro = new List<string>(){
+        "Entrada",
+        "Salida",
+        "Traslado Salida",
+        "Traslado Entrada"
+    };
+
+
+    private IEnumerable<Estado> estados = Estado.estados;
+
+    IReadOnlyList<IBrowserFile> selectedFiles;
+
+    private _ModalComponent _modalCargueMasivo;
+    private _ModalComponent _modalCargueMasivoProgress;
+
+    //Progress
+    private CargueMasivoDTO datos_cargue_masivo = new CargueMasivoDTO();
+
+    [CascadingParameter]
+    protected UserSession? userSession { get; set; }
+
+
+    private IEnumerable<string> selectedSedeIds;
+    private IEnumerable<long?> selectedJefeIds;
+    private IEnumerable<string> selectedAreaIds;
+    private IEnumerable<long?> selectedEstadoIds;
+
+    void OnselectedEstadoIdsChange(object value)
+    {
+        if (selectedEstadoIds != null && !selectedEstadoIds.Any())
+        {
+            selectedEstadoIds = null;
+        }
+    }
+
+    void OnselectedSedeIdsChange(object value)
+    {
+        if (selectedSedeIds != null && !selectedSedeIds.Any())
+        {
+            selectedSedeIds = null;
+        }
+    }
+
+    void OnselectedAreaIdsChange(object value)
+    {
+        if (selectedAreaIds != null && !selectedAreaIds.Any())
+        {
+            selectedAreaIds = null;
+        }
+    }
+
+    void OnselectedJefeIdsChange(object value)
+    {
+        if (selectedJefeIds != null && !selectedJefeIds.Any())
+        {
+            selectedJefeIds = null;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                await LoadData();
+            }
+        }
+        catch (Exception exe)
+        {
+            _logger.LogError(exe, "Error al consultar información");
+            await _jsRuntime.SweetAlertUsual("Error", "Error al consultar información", TipoMensajeSweetAlert.error);
+        }
+    }
+
+    private async Task LoadDataColaboradores()
+    {
+        _isLoadingColaboradores = true;
+        StateHasChanged();
+
+        await Task.Yield();
+
+        List<Task> tareas = new List<Task>();
+
+        var tcolaboradores =_colaboradorService.consultarColaboradores();
+        var tjefes = _colaboradorService.consultarJefesInmediatos();
+
+        await Task.WhenAll(tcolaboradores,tjefes);
+
+        colaboradores = await tcolaboradores;
+        jefes = await tjefes;
+
+        colaboradores_temp = colaboradores;
+        sedes = colaboradores.DistinctBy(c => c.sede).Select(c => c.sede);
+        areas = colaboradores.DistinctBy(c => c.area).Select(c => c.area);
+
+        _isLoadingColaboradores = false;
+        StateHasChanged();
+    }
+
+    private async Task LoadDataRegistrosAsistencias()
+    {
+        try{
+            _isLoadingRegistrosAsistencia = true;
+            StateHasChanged();
+
+            await Task.Yield();
+
+            registros_asistencias = await _colaboradorService.consultarRegistrosAsistencia(filtros);
+
+            _isLoadingRegistrosAsistencia = false;
+            StateHasChanged();
+
+            await _jsRuntime.InvokeVoidAsync("focus", "tabla-asistencias");
+        }
+        catch(Exception exe)
+        {
+            _logger.LogError(exe,"Error al consultar registros de asistencias");
+            await _jsRuntime.SweetAlertUsual("Error", "Error interno del servidor", TipoMensajeSweetAlert.error);
+        }
+
+    }
+
+    private async Task LoadData()
+    {
+        try{
+            await LoadDataColaboradores();
+
+            await Filtrar();
+        }
+        catch(Exception exe)
+        {
+            _logger.LogError(exe, "Error al cargar datos");
+            await _jsRuntime.SweetAlertUsual("Error", "Error al realizar esta operación", TipoMensajeSweetAlert.error);
+        }
+
+    }
+
+    private async Task Filtrar()
+    {
+        try
+        {
+            await Task.Yield();
+
+            if (string.IsNullOrEmpty(filtro))
+            {
+                colaboradores_temp = colaboradores;
+                return;
+            }
+
+            colaboradores_temp = colaboradores.Where
+            (
+                c =>
+
+                c.cedula.ToString().ToLower().Contains(filtro.ToLower()) ||
+                c.nombres.ToLower().Contains(filtro.ToLower()) ||
+                c.cargo.ToLower().Contains(filtro.ToLower()) ||
+                c.area.ToLower().Contains(filtro.ToLower()) ||
+                c.sede.ToLower().Contains(filtro.ToLower()) ||
+                c.correo.ToLower().Contains(filtro.ToLower())
+
+            );
+
+        }
+        catch (Exception exe)
+        {
+            _logger.LogError(exe, "Error al realizar filtro");
+        }
+    }
+
+    void Reset()
+    {
+        colaboradorToInsert = null;
+        colaboradorToUpdate = null;
+    }
+
+    async Task EditRow(Colaborador colaborador)
+    {
+        colaboradorToUpdate = colaborador;
+
+        if(colaboradorToUpdate.hora_entrada_lv is not null)
+            hora_entrada_lv = TimeOnly.FromTimeSpan(colaboradorToUpdate.hora_entrada_lv.GetValueOrDefault());
+
+        if (colaboradorToUpdate.hora_salida_lv is not null)
+            hora_salida_lv = TimeOnly.FromTimeSpan(colaboradorToUpdate.hora_salida_lv.GetValueOrDefault());
+
+        if (colaboradorToUpdate.hora_entrada_s is not null)
+            hora_entrada_s = TimeOnly.FromTimeSpan(colaboradorToUpdate.hora_entrada_s.GetValueOrDefault());
+
+        if (colaboradorToUpdate.hora_salida_s is not null)
+            hora_salida_s = TimeOnly.FromTimeSpan(colaboradorToUpdate.hora_salida_s.GetValueOrDefault());
+
+        await colaboradoresGrid.EditRow(colaborador);
+    }
+
+    private async Task OnCreateRow(Colaborador colaborador)
+    {
+        try
+        {
+            if (colaborador == colaboradorToInsert)
+            {
+                colaboradorToInsert = null;
+            }
+
+            colaboradorToUpdate = null;
+
+            ResponseDTO respuesta = await _colaboradorService.insertarInfoColaborador(colaborador);
+
+            if (!respuesta.estado.Equals("OK"))
+            {
+                await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
+                return;
+            }
+
+            List<Colaborador> colaboradores_temporal = colaboradores.ToList();
+            colaboradores_temporal.Add(colaborador);
+            colaboradores = colaboradores_temporal.ToList();
+
+            colaboradores_temp = colaboradores;
+
+            await _jsRuntime.InvokeVoidAsync("successToastr", "Información guardada correctamente");
+            limpiarHoras();
+        }
+        catch (Exception exe)
+        {
+            CancelEdit(colaborador);
+            _logger.LogError(exe, "Error al insertar colaborador");
+            await _jsRuntime.SweetAlertUsual("Error", "Error al realizar esta operación", TipoMensajeSweetAlert.error);
+        }
+    }
+
+    private async Task OnUpdateRow(Colaborador colaborador)
+    {
+        try
+        {
+            if (colaborador == colaboradorToInsert)
+            {
+                colaboradorToInsert = null;
+            }
+
+            colaboradorToUpdate = null;
+
+            colaborador.usuario_adiciono = userSession.UserName;
+
+            ResponseDTO respuesta = await _colaboradorService.insertarInfoColaborador(colaborador);
+
+            if (!respuesta.estado.Equals("OK"))
+            {
+                await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
+                return;
+            }
+
+            await _jsRuntime.InvokeVoidAsync("successToastr", "Información guardada correctamente");
+            limpiarHoras();
+        }
+        catch (Exception exe)
+        {
+            CancelEdit(colaborador);
+            _logger.LogError(exe, "Error al actualizar colaborador");
+            await _jsRuntime.SweetAlertUsual("Error", "Error al realizar esta operación", TipoMensajeSweetAlert.error);
+        }
+    }
+
+    async Task SaveRow(Colaborador colaborador)
+    {
+        colaborador.usuario_adiciono = userSession.UserName;
+
+        if(this.hora_entrada_lv is not null)
+        {
+            colaborador.hora_entrada_lv = this.hora_entrada_lv.GetValueOrDefault().ToTimeSpan();
+        }
+
+        if(this.hora_salida_lv is not null)
+        {
+            colaborador.hora_salida_lv = this.hora_salida_lv.GetValueOrDefault().ToTimeSpan();
+        }
+
+        if(this.hora_entrada_s is not null)
+        {
+            colaborador.hora_entrada_s = this.hora_entrada_s.GetValueOrDefault().ToTimeSpan();
+        }
+
+        if (this.hora_salida_s is not null)
+        {
+            colaborador.hora_salida_s = this.hora_salida_s.GetValueOrDefault().ToTimeSpan();
+        }
+
+        ResponseDTO respuesta = _colaboradorService.validarColaborador(colaborador);
+
+        if (respuesta.estado.Equals("ERROR"))
+        {
+            await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
+            return;
+        }
+
+        await colaboradoresGrid.UpdateRow(colaborador);
+    }
+
+    void CancelEdit(Colaborador colaborador)
+    {
+        colaboradorToInsert = null;
+        colaboradorToUpdate = null;
+
+        colaboradoresGrid.CancelEditRow(colaborador);
+    }
+
+    async Task InsertRow()
+    {
+        colaboradorToInsert = new Colaborador();
+        colaboradorToInsert.estado = 1;
+        await colaboradoresGrid.InsertRow(colaboradorToInsert);
+    }
+
+
+    private void OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        selectedFiles = e.GetMultipleFiles();
+        StateHasChanged();
+    }
+
+    private async Task CargueMasivoColaboradores()
+    {
+        if (selectedFiles == null)
+        {
+            await _jsRuntime.SweetAlertUsual("Error", "Debe seleccionar un archivo", TipoMensajeSweetAlert.error);
+            return;
+        }
+
+        await _jsRuntime.SweetAlertLoading("Procesando", "Procesando solicitud");
+
+        datos_cargue_masivo = new CargueMasivoDTO();
+
+        IEnumerable<Archivo> archivos = await FileHelper.getTempFiles(selectedFiles);
+
+        Archivo archivo_cargue = archivos.FirstOrDefault();
+
+        Progress<CargueMasivoDTO> progress = new Progress<CargueMasivoDTO>();
+        progress.ProgressChanged += ReportProgress;
+
+        ResponseDTO respuesta = await _colaboradorService.cargueMasivoColaboradores(archivo_cargue, progress, userSession.UserName);
+
+        if (respuesta.estado.Equals("ERROR"))
+        {
+            await _jsRuntime.SweetAlertUsual("Error", respuesta.descripcion, TipoMensajeSweetAlert.error);
+            return;
+        }
+
+        await _jsRuntime.InvokeVoidAsync("Swal.close");
+
+        await _modalCargueMasivo.cerrarModal();
+
+        await _modalCargueMasivoProgress.abrirModal();
+
+    }
+
+    private async void ReportProgress(object sender, CargueMasivoDTO e)
+    {
+        this.datos_cargue_masivo = e;
+        StateHasChanged();
+
+        if (this.datos_cargue_masivo.estado.Equals("FINALIZADO")) await LoadData();
+    }
+
+    private async Task DescargarExcelAsistencias()
+    {
+        try
+        {
+            await _jsRuntime.SweetAlertLoading("Procesando", "Procesando solicitud");
+
+            Archivo archivo = await _colaboradorService.generarReporteRegistroAsistencias(filtros);
+
+            if (archivo is null) return;
+
+            await _jsRuntime.SweetAlertClose();
+
+            await _jsRuntime.DescargarArchivo(archivo.ruta_absoluta, "Reporte");
+        }
+        catch (Exception exe)
+        {
+            _logger.LogError(exe, $"Error al generar reporte excel registro de asistencias");
+            await _jsRuntime.SweetAlertUsual("Error", "Error interno del servidor", TipoMensajeSweetAlert.error);
+        }
+    }
+
+    private async Task DescargarPlantilla()
+    {
+        try
+        {
+            string ruta_plantilla = Path.Combine(Directory.GetCurrentDirectory(), "Formato", "PlantillaColaboradores.xlsx");
+
+            await _jsRuntime.DescargarArchivo(ruta_plantilla, "Plantilla");
+        }
+        catch (Exception exe)
+        {
+            _logger.LogError(exe, "Error al descargar plantilla");
+            await _jsRuntime.SweetAlertUsual("Error", "Error interno del servidor", TipoMensajeSweetAlert.error);
+        }
+    }
+
+    private async Task DescargarPlantillaEjemplo()
+    {
+        try
+        {
+            string ruta_plantilla = Path.Combine(Directory.GetCurrentDirectory(), "Formato", "PlantillaEjemplo.xlsx");
+
+            await _jsRuntime.DescargarArchivo(ruta_plantilla, "PlantillaEjemplo");
+        }
+        catch (Exception exe)
+        {
+            _logger.LogError(exe, "Error al descargar plantilla");
+            await _jsRuntime.SweetAlertUsual("Error", "Error interno del servidor", TipoMensajeSweetAlert.error);
+        }
+    }
+
+    private string GetColor(Colaborador colaborador)
+    {
+        if (colaborador.estado == 1) return "green";
+        else if (colaborador.estado == 2) return "red";
+
+        return "gray";
+    }
+
+    private async Task VerUbicacion(RegistroAsistenciaDTO registro)
+    {
+        try
+        {
+            titulo_modal_maps = $"{registro.nombres} {registro.apellidos} - Sede : {registro.sede} - {registro.fecha_adicion.GetValueOrDefault().ToString("dddd, dd MMMM yyyy", new CultureInfo("es-ES"))}";
+
+            lat_maps = double.Parse(registro.latitud, CultureInfo.InvariantCulture);
+            lng_maps = double.Parse(registro.longitud, CultureInfo.InvariantCulture);
+
+            if (lat_maps == 0 && lng_maps == 0)
+            {
+                await _jsRuntime.SweetAlertUsual("Error", "Datos de ubicación no válidos", TipoMensajeSweetAlert.error);
+                return;
+            }
+
+            _isLoadingMaps = true;
+            StateHasChanged();
+
+            await Task.Delay(300);
+
+            titulo_marcador_maps = $"{registro.nombres} {registro.apellidos}";
+
+            _isLoadingMaps = false;
+            StateHasChanged();
+
+            await _modalMaps.abrirModal();
+        }
+        catch (Exception exe)
+        {
+            _logger.LogError(exe, "Error al consultar ubicación en maps");
+            await _jsRuntime.SweetAlertUsual("Error", "Error al consultar información", TipoMensajeSweetAlert.error);
+        }
+    }
+
+    private string GetHorarioRegistroAsistencia(RegistroAsistenciaDTO registro)
+    {
+        if (!registro.tipo_reporte.Equals("Entrada") && !registro.tipo_reporte.Equals("Salida"))
+        {
+            return "";
+        }
+
+        TimeSpan? hora = null;
+
+        List<DayOfWeek> l_v = new List<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
+        List<DayOfWeek> s = new List<DayOfWeek> { DayOfWeek.Saturday };
+
+        DayOfWeek dia = registro.fecha_adicion.GetValueOrDefault().DayOfWeek;
+
+        if (l_v.Contains(dia)) //Lunes a viernes
+        {
+            if (registro.tipo_reporte.Equals("Entrada"))
+            {
+                hora = registro.hora_entrada_lv;
+            }
+            else if (registro.tipo_reporte.Equals("Salida"))
+            {
+                hora = registro.hora_salida_lv;
+            }
+        }
+        else if (s.Contains(dia)) //Sábados
+        {
+            if (registro.tipo_reporte.Equals("Entrada"))
+            {
+                hora = registro.hora_entrada_s;
+            }
+            else if (registro.tipo_reporte.Equals("Salida"))
+            {
+                hora = registro.hora_salida_s;
+            }
+        }
+        else
+        {
+            return "";
+        }
+
+        if (hora is null) return "";
+
+        return DateTime.Now.Date.Add(hora.GetValueOrDefault()).ToString("hh:mm tt");
+
+    }
+
+    private string GetColorAsistencia(RegistroAsistenciaDTO registro)
+    {
+        if (!registro.tipo_reporte.Equals("Entrada") && !registro.tipo_reporte.Equals("Salida"))
+        {
+            return "gray";
+        }
+
+        TimeSpan? hora = null;
+
+        List<DayOfWeek> l_v = new List<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
+        List<DayOfWeek> s = new List<DayOfWeek> { DayOfWeek.Saturday };
+
+        DayOfWeek dia = registro.fecha_adicion.GetValueOrDefault().DayOfWeek;
+
+        if (l_v.Contains(dia)) //Lunes a viernes
+        {
+            if (registro.tipo_reporte.Equals("Entrada"))
+            {
+                hora = registro.hora_entrada_lv;
+            }
+            else if (registro.tipo_reporte.Equals("Salida"))
+            {
+                hora = registro.hora_salida_lv;
+            }
+        }
+        else if (s.Contains(dia)) //Sábados
+        {
+            if (registro.tipo_reporte.Equals("Entrada"))
+            {
+                hora = registro.hora_entrada_s;
+            }
+            else if (registro.tipo_reporte.Equals("Salida"))
+            {
+                hora = registro.hora_salida_s;
+            }
+        }
+        else
+        {
+            return "gray";
+        }
+
+        if (hora is null) return "gray";
+
+        TimeSpan hora_registro = registro.fecha_adicion.GetValueOrDefault().TimeOfDay;
+
+        if (registro.tipo_reporte.Equals("Entrada"))
+        {
+            if (hora_registro > hora)
+            {
+                return "red";
+            }
+            else
+            {
+                return "green";
+            }
+        }
+        else if (registro.tipo_reporte.Equals("Salida"))
+        {
+            if (hora_registro < hora)
+            {
+                return "red";
+            }
+            else
+            {
+                return "green";
+            }
+        }
+
+        return "gray";
+
+    }
+}

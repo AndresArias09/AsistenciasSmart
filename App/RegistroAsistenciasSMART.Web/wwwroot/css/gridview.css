@@ -1,12 +1,14 @@
-﻿:root {
-    --rz-secondary: #c43030 !important;
-    --rz-secondary-light: #e49292 !important;
-    --rz-secondary-dark: #892222 !important;
-    --rz-primary: #c43030 !important;
-    --rz-primary-light: #e49292 !important;
-    --rz-primary-lighter: rgb(244, 211, 211) !important;
-    --rz-primary-dark: #892222 !important;
-    --rz-primary-darker: rgb(82, 20, 20) !important;
+﻿@import url("https://fonts.googleapis.com/css?family=Poppins:400,500,600");
+
+:root {
+    --rz-secondary: #A3BD31 !important;
+    --rz-secondary-light: #dde9a9 !important;
+    --rz-secondary-dark: #414c14 !important;
+    --rz-primary: #A3BD31 !important;
+    --rz-primary-light: #dde9a9 !important;
+    --rz-primary-lighter: rgb(229, 238, 190) !important;
+    --rz-primary-dark: #414c14 !important;
+    --rz-primary-darker: rgb(49, 57, 15) !important;
 }
 
 .rz-column-title-content {
@@ -19,4 +21,68 @@
     white-space: normal !important;
     overflow: auto !important;
     padding: 2px !important;
+}
+
+.table th {
+    color: white !important;
+    background: #ADADAD !important;
+}
+
+    .table th span {
+        color: white !important;
+    }
+
+    .table th div span {
+        color: white !important;
+    }
+
+.table tr:nth-of-type(2n) {
+    background: #f3f3f3 !important;
+}
+
+.table-responsive {
+    max-height: 800px !important;
+    overflow-y: auto !important;
+}
+
+@media (max-width: 1200px) {
+    .table th {
+        display: none;
+    }
+
+    .table td {
+        display: grid;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+    }
+
+        .table td:first-child {
+            padding-top: 2rem;
+        }
+
+        .table td:last-child {
+            padding-bottom: 2rem;
+        }
+
+        .table td::before {
+            content: attr(data-cell) ": ";
+            font-weight: 700;
+            text-transform: capitalize;
+        }
+}
+
+
+.rz-multiselect-panel.rz-popup {
+    width: auto !important;
+    max-width: 500px !important;
+}
+
+.rz-dropdown-panel.rz-popup {
+    width: auto !important;
+    max-width: 500px !important;
+}
+
+.rz-multiselect-header {
+    font-size: 1rem;
+    !important;
 }

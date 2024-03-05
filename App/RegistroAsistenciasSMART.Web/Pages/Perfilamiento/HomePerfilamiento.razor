@@ -1,0 +1,136 @@
+﻿@attribute [PageInfo(id_modulo = "1")]
+
+@page "/Perfilamiento"
+
+@using RegistroAsistenciasSMART.Model.Models.Configuracion.Perfilamiento
+@using RegistroAsistenciasSMART.Services.Interfaces.Configuracion.Perfilamiento
+
+@inject IUserService _userService
+@inject ILogger<HomePerfilamiento> _logger
+
+@if (_isLoading)
+{
+	<_Loading></_Loading>
+}
+else
+{
+	<div class="cont">
+		<img style="width:100%" src="assetsMainSite/imagesHome/bg.png" />
+		<div class="top-left">
+			<h1>Bienvenido/a @nombre_usuario</h1>
+			<h5>¿Qué harás hoy?</h5>
+		</div>
+	</div>
+
+
+	<div class="row row-cards">
+		@* ROLES *@
+		<ModuleAuthorizationView id_modulo="5">
+			<Authorize>
+				<div class="col">
+					<a href="/Perfilamiento/Roles">
+						<div class="card">
+							<div class="card-img-actions mx-1 " style="text-align: center">
+								<img src="assetsMainSite/imagesHome/1.png">
+
+							</div>
+
+							<div class="card-body">
+								<div class="d-flex align-items-start flex-nowrap">
+									<div>
+										<h6 class="fw-semibold me-2">Roles</h6>
+										<span>Consulta, agrega o edita roles</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</a>
+				</div>
+			</Authorize>
+		</ModuleAuthorizationView>
+		@* USUARIOS *@
+		<ModuleAuthorizationView id_modulo="6">
+			<Authorize>
+				<div class="col">
+					<a href="/Perfilamiento/Usuarios">
+						<div class="card">
+							<div class="card-img-actions mx-1 ">
+								<img src="assetsMainSite/imagesHome/2.png">
+
+							</div>
+
+							<div class="card-body">
+								<div class="d-flex align-items-start flex-nowrap">
+									<div>
+										<h6 class="fw-semibold me-2">Usuarios</h6>
+										<span>Consulta, agrega o edita usuarios</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</a>
+
+				</div>
+			</Authorize>
+		</ModuleAuthorizationView>
+
+		<div class="col">
+			<a href="/Home">
+				<div class="card">
+					<div class="card-img-actions mx-1 ">
+						<img src="assetsMainSite/imagesHome/2.png">
+
+					</div>
+
+					<div class="card-body">
+						<div class="d-flex align-items-start flex-nowrap">
+							<div>
+								<h6 class="fw-semibold me-2">Home</h6>
+								<span>Volver a la pantalla principal</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</a>
+
+		</div>
+	</div>
+
+}
+
+
+@code {
+	private bool _isLoading = true;
+
+	[CascadingParameter]
+	protected UserSession? session { get; set; }
+
+	private string nombre_usuario = "";
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		try
+		{
+			if (firstRender)
+			{
+				Usuario usuario = await _userService.getUsuarioByUser(session.UserName);
+
+				if (usuario is null) return;
+
+				nombre_usuario = $"{usuario.nombres} {usuario.apellidos}";
+
+				if (string.IsNullOrEmpty(nombre_usuario))
+				{
+					nombre_usuario = session.UserName;
+				}
+
+				_isLoading = false;
+				StateHasChanged();
+			}
+		}
+		catch (Exception exe)
+		{
+
+		}
+	}
+}

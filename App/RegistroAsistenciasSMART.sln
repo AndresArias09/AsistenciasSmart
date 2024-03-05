@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RegistroAsistenciasSMART.Mo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RegistroAsistenciasSMART.Services", "RegistroAsistenciasSMART.Services\RegistroAsistenciasSMART.Services.csproj", "{EFFE9A49-A991-4F28-B85E-CC9DC4C54AB8}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Encriptacion", "Encriptacion\Encriptacion.csproj", "{35C1DCDE-0AAF-4A8C-A2A4-7CC61045359B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{EFFE9A49-A991-4F28-B85E-CC9DC4C54AB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFFE9A49-A991-4F28-B85E-CC9DC4C54AB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFFE9A49-A991-4F28-B85E-CC9DC4C54AB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35C1DCDE-0AAF-4A8C-A2A4-7CC61045359B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35C1DCDE-0AAF-4A8C-A2A4-7CC61045359B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35C1DCDE-0AAF-4A8C-A2A4-7CC61045359B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35C1DCDE-0AAF-4A8C-A2A4-7CC61045359B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

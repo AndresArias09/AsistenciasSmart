@@ -10,8 +10,6 @@
 @using Microsoft.AspNetCore.Components.Server.Circuits;
 
 @inject IUserService _userService
-@inject ICircuitUserService _circuitUserServer
-@inject CircuitHandler BlazorCircuitHandler
 @inject ILogger<VerificacionOTPLogin> _logger
 
 <_OTPScreen otp_enviado=@otp_enviado enviando_otp=@_isLoading
@@ -42,7 +40,7 @@
         {
             _logger.LogError(exe, $"Error al generar OTP para usuario {nombre_usuario}");
             await _jsRuntime.SweetAlertConfirmSuccess("Error", "Error al consultar los datos del usuario", TipoMensajeSweetAlert.error);
-            _navigationManager.NavigateTo("/",forceLoad:true);
+            _navigationManager.NavigateTo("/", forceLoad: true);
         }
     }
 
@@ -59,7 +57,7 @@
 
         Usuario user = await _userService.getUsuarioByUser(usuario);
 
-        if(user is null)
+        if (user is null)
         {
             await _jsRuntime.SweetAlertConfirmSuccess("Error", "Link no válido", TipoMensajeSweetAlert.error);
             _navigationManager.NavigateTo("/", forceLoad: true);
@@ -68,7 +66,7 @@
 
         var remoteIpAddress = await _jsRuntime.GetIpAddress();
 
-        ResponseDTO respuesta = await _userService.enviarCodigoOTPLogin(usuario,remoteIpAddress);
+        ResponseDTO respuesta = await _userService.enviarCodigoOTPLogin(usuario, remoteIpAddress);
 
         if (respuesta.estado.Equals("ERROR"))
         {
@@ -124,30 +122,32 @@
                 Usuario user = await _userService.getUsuarioByUser(usuario);
 
                 //Session
-                UserSession session = new UserSession
+                UserSession userSession = new UserSession
                     {
                         UserName = user.usuario,
                         RememberMe = rememberMe,
                         Id = user.id_usuario,
-                        Role = "",
+                        Role = user.id_rol.ToString(),
                         Ip = remoteIpAddress,
                         last_login = DateTime.Now,
                         hash_password = "",
                         id_auditoria_login = id_auditoria
                     };
 
-                //Authentication Provider
-                var customAuthStateProvider = (CustomAuthenticationStateProvider)_authStateProvider;
-                await customAuthStateProvider.UpdateAuthenticationState(session);
-
-
-                // _logger.LogInformation($"Login exitoso para usuario {user.usuario}");
-
-                CircuitHandlerService handler = (CircuitHandlerService)BlazorCircuitHandler;
-                _circuitUserServer.Connect(handler.CirtuidId, session);
+                await _authenticationService.updateActualSession(userSession);
+                _authenticationService.conectarCircuito(userSession);
 
                 await _jsRuntime.SweetAlertConfirmSuccess("Correcto", "Código validado correctamente", TipoMensajeSweetAlert.success);
-                _navigationManager.NavigateTo("/Home", forceLoad: true);
+
+                if(user.id_rol == 1)
+                {
+                    _navigationManager.NavigateTo("/Home", forceLoad: true);
+                }
+                else
+                {
+                    _navigationManager.NavigateTo("/GestionAsistencias", forceLoad: true);
+                }
+                
             }
             else
             {

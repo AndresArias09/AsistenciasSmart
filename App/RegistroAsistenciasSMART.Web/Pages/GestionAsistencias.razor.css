@@ -1,0 +1,16 @@
+﻿.div-hora {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.div-hora input[type="image"] {
+    width:20px;
+    height: 25px;
+}
+
+.div-hora input[type="time"] {
+    width: auto !important;
+}
+

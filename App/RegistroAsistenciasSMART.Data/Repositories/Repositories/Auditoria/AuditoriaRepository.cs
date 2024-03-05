@@ -1,5 +1,4 @@
 ﻿using RegistroAsistenciasSMART.Data.Repositories.Interfaces.Auditoria;
-using RegistroAsistenciasSMART.Model.Models.Configuracion.Perfilamiento;
 using Dapper;
 using System;
 using System.Collections.Generic;
@@ -10,21 +9,19 @@ using System.Threading.Tasks;
 using RegistroAsistenciasSMART.Model.Models.Auditoria;
 using Npgsql;
 using System.Data;
+using RegistroAsistenciasSMART.Data.Connection;
 
 namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Auditoria
 {
-    public class AuditoriaRepository : IAuditoriaRepository
+    /// <summary>
+    /// Implemenetación de la interfaz <see cref="IAuditoriaRepository"/>
+    ///  utilizando el motor de bases de datos <c>PostgreSQL</c>
+    /// </summary>
+    public class AuditoriaRepository : PostgreSQLRepository, IAuditoriaRepository
     {
-        private string ConnectionString;
-
         public AuditoriaRepository(string connectionString)
         {
             ConnectionString = connectionString;
-        }
-
-        protected NpgsqlConnection dbConnection()
-        {
-            return new NpgsqlConnection(ConnectionString);
         }
 
         public async Task<bool> registrarAuditoriaEnvioEmail(EmailInfo emailInfo)
@@ -49,9 +46,9 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Auditoria
                     )";
 
             var p = new DynamicParameters();
-            p.Add("@p_email_destinatario", string.Join(", ",emailInfo.destinatarios));
-            p.Add("@p_email_cc", string.Join(", ",emailInfo.cc));
-            p.Add("@p_email_bcc", string.Join(", ",emailInfo.bcc));
+            p.Add("@p_email_destinatario", string.Join(", ", emailInfo.destinatarios));
+            p.Add("@p_email_cc", string.Join(", ", emailInfo.cc));
+            p.Add("@p_email_bcc", string.Join(", ", emailInfo.bcc));
             p.Add("@p_asunto", emailInfo.asunto);
             p.Add("@p_email_emisor", emailInfo.email_emisor);
             p.Add("@p_mensaje", emailInfo.mensaje);
@@ -91,6 +88,9 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Auditoria
             p.Add("@p_versionso", auditoriaNavegacion.VersionSO.ToString());
             p.Add("@p_ip_address", auditoriaNavegacion.ip_address.ToString());
             p.Add("@p_usuario_accion", auditoriaNavegacion.usuario_accion.ToString());
+            p.Add("@p_latitud", auditoriaNavegacion.Latitud.ToString());
+            p.Add("@p_longitud", auditoriaNavegacion.Longitud.ToString());
+            p.Add("@p_ubicacion", auditoriaNavegacion.ubicacion.ToString());
 
             result = await db.ExecuteAsync(sql.ToString(), p, commandType: System.Data.CommandType.StoredProcedure);
 
@@ -116,96 +116,6 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Auditoria
             result = await db.ExecuteAsync(sql.ToString(), p, commandType: System.Data.CommandType.StoredProcedure);
 
             return result > 0;
-        }
-
-        public async Task<bool> registrarAuditoriaFirma(AuditoriaTransaccionalFirma auditoria)
-        {
-            var result = 0;
-            var db = dbConnection();
-
-            var sql = @"aud.insertar_auditoria_transaccional";
-
-            var p = new DynamicParameters();
-            p.Add("@p_accion", auditoria.accion);
-            p.Add("@p_descripcion", auditoria.descripcion);
-            p.Add("@p_pantalla", auditoria.pantalla);
-            p.Add("@p_ip_accion", auditoria.ip_accion);
-            p.Add("@p_usuario_accion", auditoria.usuario_accion);
-            p.Add("@p_id_firma", long.Parse(auditoria.id_firma));
-            
-
-            result = await db.ExecuteAsync(sql.ToString(), p, commandType: System.Data.CommandType.StoredProcedure);
-
-            return result > 0;
-        }
-
-        public async Task<bool> registrarAuditoriaComunicacion(AuditoriaTransaccionalComunicacion auditoria)
-        {
-            var result = 0;
-            var db = dbConnection();
-
-            var sql = @"aud.insertar_auditoria_transaccional_comunicaciones";
-
-            var p = new DynamicParameters();
-            p.Add("@p_accion", auditoria.accion);
-            p.Add("@p_descripcion", auditoria.descripcion);
-            p.Add("@p_pantalla", auditoria.pantalla);
-            p.Add("@p_ip_accion", auditoria.ip_accion);
-            p.Add("@p_usuario_accion", auditoria.usuario_accion);
-            p.Add("@p_id_comunicacion", long.Parse(auditoria.id_comunicacion));
-
-
-            result = await db.ExecuteAsync(sql.ToString(), p, commandType: System.Data.CommandType.StoredProcedure);
-
-            return result > 0;
-        }
-
-        public async Task<IEnumerable<AuditoriaTransaccionalFirma>> consultarAuditoriaFirma(long id_firma)
-		{
-			var db = dbConnection();
-
-            var sql = @"SELECT 
-                        id_auditoria,
-                        id_firma,
-                        accion,
-                        descripcion,
-                        pantalla,
-                        ip_accion,
-                        usuario_accion,
-                        fecha_adicion
-                        FROM aud.auditoria_transaccional
-                        where id_firma = @id
-                        order by fecha_adicion
-                        ";
-
-            var p = new DynamicParameters();
-            p.Add("@id", id_firma);
-
-            return await db.QueryAsync<AuditoriaTransaccionalFirma>(sql, p);
-		}
-
-        public async Task<IEnumerable<AuditoriaTransaccionalComunicacion>> consultarAuditoriaComunicacion(long id_comunicacion)
-        {
-            var db = dbConnection();
-
-            var sql = @"SELECT 
-                        id_auditoria,
-                        id_comunicacion,
-                        accion,
-                        descripcion,
-                        pantalla,
-                        ip_accion,
-                        usuario_accion,
-                        fecha_adicion
-                        FROM aud.auditoria_transaccional_comunicaciones
-                        where id_comunicacion = @id
-                        order by fecha_adicion
-                        ";
-
-            var p = new DynamicParameters();
-            p.Add("@id", id_comunicacion);
-
-            return await db.QueryAsync<AuditoriaTransaccionalComunicacion>(sql, p);
         }
     }
 }

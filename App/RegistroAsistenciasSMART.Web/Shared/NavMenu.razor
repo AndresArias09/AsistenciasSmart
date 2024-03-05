@@ -1,9 +1,51 @@
 ﻿
 @inject ILogger<NavMenu> _logger
 
+@if (_isLoading)
+{
+	<p>Cargando...</p>
+}
+else
+{
+	<div class="dropdown-item usuario-movil" style="display:flex; flex-flow: row; justify-content: space-around !important">
+		<div class="status-indicator-container">
+			<img style="height:30px" src="https://i.ibb.co/6gTWzjY/Screenshot-1.png">
+		</div>
+		<span style="color:black" class="d-lg-inline-block mx-lg-2">@session.UserName</span>
+	</div>
+	<div class="dropdown-divider usuario-movil"></div>
+
+	@* PERFILAMIENTO *@
+	<ModuleAuthorizationView id_modulo="1">
+		<Authorize>
+			<NavLink class="dropdown-item" href="/Perfilamiento">Perfilamiento</NavLink>
+		</Authorize>
+		<NotAuthorize>
+
+		</NotAuthorize>
+	</ModuleAuthorizationView>
+	@* GESTIÓN ASISTENCIAS *@
+	<ModuleAuthorizationView id_modulo="5">
+		<Authorize>
+			<NavLink class="dropdown-item" href="/GestionAsistencias">Gestión Asistencias</NavLink>
+		</Authorize>
+		<NotAuthorize>
+
+		</NotAuthorize>
+	</ModuleAuthorizationView>
+	
+
+	<button type="button" @onclick="eventoCerrarSession" style="color:red;font-weight:600;display:block" class="dropdown-item">
+		Cerrar sesión
+	</button>
+}
 
 @code {
+	[Parameter]
+	public EventCallback eventoCerrarSession { get; set; }
 
+	[CascadingParameter]
+	protected UserSession? session { get; set; }
 
 	private bool _isLoading = true;
 
@@ -19,32 +61,7 @@
 
 			_isLoading = false;
 			StateHasChanged();
-
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/demo_configurator.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/js/bootstrap/bootstrap.bundle.min.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/js/vendor/visualization/d3/d3.min.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/js/vendor/visualization/d3/d3_tooltip.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/js/vendor/visualization/d3/d3_tooltip.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/js/app.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/streamgraph.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/sparklines.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/lines.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/areas.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/donuts.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/bars.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/progress.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/progress.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/heatmaps.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/pies.js");
-			await _jsRuntime.InvokeVoidAsync("loadScript", "../assetsMainSite/demo/charts/pages/dashboard/bullets.js");
-
-			//Loader
-			await _jsRuntime.InvokeVoidAsync("agregarClase", ".loaderOverlay", "inactive");
-
 		}
-
-
 	}
-
 
 }

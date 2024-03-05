@@ -1,0 +1,6 @@
+.dropdown-menu.show {
+    display: block;
+    position: absolute;
+    inset: 0px 0px auto auto;
+    transform: translate(0px, 38px);
+}

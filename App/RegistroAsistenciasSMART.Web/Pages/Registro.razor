@@ -1,6 +1,7 @@
 ﻿@layout RegistroLayout
 
 @page "/Registro/{sede}"
+
 @using Newtonsoft.Json
 @using RegistroAsistenciasSMART.Model.DTO
 @using RegistroAsistenciasSMART.Model.Models.Colaboradores
@@ -53,13 +54,13 @@ else
                     <div id="formularioRegistro" name="formularioRegistro" class="needs-validation">
                         <div class="mb-3">
                             <label for="cedula" class="form-label">Documento</label>
-                            <input type="text" @bind-value="registro.cedula" name="cedula" id="cedula" class="form-control" placeholder="Ingresa tu número de documento">
+                            <input type="number" @bind-value="registro.cedula_colaborador" name="cedula" id="cedula" class="form-control" placeholder="Ingresa tu número de documento">
                         </div>
 
                         <div class="row">
                             <div class="mb-3">
                                 <label for="reporta" class="form-label"> ¿Qué reportas? </label>
-                                <select @bind-value="registro.reporta" @bind-value:event="onchange" class="form-select" id="reporta" name="reporta">
+                                <select @bind-value="registro.tipo_reporte" @bind-value:event="onchange" class="form-select" id="reporta" name="reporta">
                                     <option value="">[Seleccionar]</option>
                                     <option value="Entrada">Entrada</option>
                                     <option value="Salida">Salida</option>
