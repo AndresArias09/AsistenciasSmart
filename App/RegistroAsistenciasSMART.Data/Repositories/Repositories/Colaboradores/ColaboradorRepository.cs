@@ -184,7 +184,8 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
                         hora_entrada_lv=@p_hora_entrada_lv,
                         hora_salida_lv=@p_hora_salida_lv,
                         hora_entrada_s=@p_hora_entrada_s,
-                        hora_salida_s=@p_hora_salida_s
+                        hora_salida_s=@p_hora_salida_s,
+                        usuario_adiciono=@p_usuario_adiciono
                         WHERE cedula = @p_cedula";
 
             DynamicParameters p = new DynamicParameters();
@@ -201,6 +202,7 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
             p.Add("@p_hora_salida_lv", colaborador.hora_salida_lv);
             p.Add("@p_hora_entrada_s", colaborador.hora_entrada_s);
             p.Add("@p_hora_salida_s", colaborador.hora_salida_s);
+            p.Add("@p_usuario_adiciono", colaborador.usuario_adiciono);
 
             var result = await db.ExecuteAsync(sql, p);
 
