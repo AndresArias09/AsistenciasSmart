@@ -165,7 +165,7 @@
 		Usuario tempUser = await _userService.getUsuarioByUser(session.UserName);
 
 		//Usuario inactivo
-		if (!tempUser.estado.Equals("1"))
+		if (tempUser.estado != 1)
 		{
 			await _userService.registrarAuditoriaCierreSesion(session.id_auditoria_login, session.UserName, ipAddress, $"La sesión se vence ya se ha inactivado el usuario");
 			await _authenticationService.LimpiarSesion();

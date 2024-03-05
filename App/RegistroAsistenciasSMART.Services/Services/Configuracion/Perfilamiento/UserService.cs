@@ -667,7 +667,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Configuracion.Perfilamiento
                 return new ResponseDTO() { estado = "ERROR", descripcion = $"Formato de correo incorrecto para el correo electrónico del usuario" };
             }
 
-            if (string.IsNullOrEmpty(usuario.estado))
+            if (usuario.estado is null)
             {
                 return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el estado del usuario" };
             }

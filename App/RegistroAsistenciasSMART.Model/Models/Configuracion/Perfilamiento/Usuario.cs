@@ -34,7 +34,7 @@ namespace RegistroAsistenciasSMART.Model.Models.Configuracion.Perfilamiento
         /// <summary>
         /// Estado actual del usuario
         /// </summary>
-        public string estado { get; set; } = "";
+        public long? estado { get; set; }
         /// <summary>
         /// Identificador del rol que tiene asignado el usuario
         /// </summary>

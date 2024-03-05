@@ -53,14 +53,14 @@
                             </div>
                         </EditTemplate>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Width="100px" TItem="Usuario" Property="estado" Title="Estado" Type="typeof(IEnumerable<string>)"
+                    <RadzenDataGridColumn TItem="Usuario" Property="estado" Title="Estado" Type="typeof(IEnumerable<long?>)"
                                           FilterValue="@selectedEstadoIds" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
                         <FilterTemplate>
-                            <RadzenDropDown SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedEstadoIds Style="width:100%;"
+                            <RadzenDropDown TValue="IEnumerable<long?>" SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedEstadoIds Style="width:100%;"
                                             Change=@OnselectedEstadoIdsChange Data="@(estados)" AllowClear="true" ValueProperty="id_estado" TextProperty="descripcion" Multiple="true" />
                         </FilterTemplate>
                         <EditTemplate Context="usuario">
-                            <RadzenDropDown  AllowClear="false" TValue="string" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Class="form-control"
+                            <RadzenDropDown  AllowClear="false" TValue="long?" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Class="form-control"
                                             Placeholder="[Seleccionar]" @bind-value="usuario.estado" Data=@estados TextProperty="descripcion" ValueProperty="id_estado" />
                         </EditTemplate>
                         <Template Context="usuario">
@@ -160,7 +160,7 @@
     private Usuario usuarioToInsert;
     private Usuario usuarioToUpdate;
 
-    private IEnumerable<string> selectedEstadoIds;
+    private IEnumerable<long?> selectedEstadoIds;
     private IEnumerable<long> selectedRolIds;
 
     private IEnumerable<Estado> estados = Estado.estados;
@@ -286,7 +286,7 @@
     async Task InsertRow()
     {
         usuarioToInsert = new Usuario();
-        usuarioToInsert.estado = "1";
+        usuarioToInsert.estado = 1;
         await usuariosGrid.InsertRow(usuarioToInsert);
     }
 
@@ -327,8 +327,8 @@
 
     private string GetColor(Usuario usuario)
     {
-        if (usuario.estado.Equals("1")) return "green";
-        if (usuario.estado.Equals("2")) return "red";
+        if (usuario.estado == 1) return "green";
+        if (usuario.estado == 2) return "red";
 
         return "gray";
     }
