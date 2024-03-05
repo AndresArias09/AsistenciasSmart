@@ -28,6 +28,9 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
         private readonly IColaboradorRepository _colaboradorRepository;
         private readonly IUserService _userService;
 
+        private readonly List<DayOfWeek> l_v = new List<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
+        private readonly List<DayOfWeek> s = new List<DayOfWeek> { DayOfWeek.Saturday };
+
         private ILogger<ColaboradorService> _logger;
 
         private IEnumerable<string> tipo_reporte = new List<string>()
@@ -656,7 +659,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                 column++;
 
                 celda = fila.CreateCell(column);
-                celda.SetCellValue(asistencia.fecha_adicion?.ToString("hh:mm tt"));
+                celda.SetCellValue(asistencia.fecha_adicion?.ToString("hh:mm:ss tt"));
                 column++;
 
                 celda = fila.CreateCell(column);
@@ -743,7 +746,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             };
         }
 
-        private string GetHorarioRegistroAsistencia(RegistroAsistenciaDTO registro)
+        public string GetHorarioRegistroAsistencia(RegistroAsistenciaDTO registro)
         {
             if (!registro.tipo_reporte.Equals("Entrada") && !registro.tipo_reporte.Equals("Salida"))
             {
@@ -751,9 +754,6 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             }
 
             TimeSpan? hora = null;
-
-            List<DayOfWeek> l_v = new List<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
-            List<DayOfWeek> s = new List<DayOfWeek> { DayOfWeek.Saturday };
 
             DayOfWeek dia = registro.fecha_adicion.GetValueOrDefault().DayOfWeek;
 
@@ -790,7 +790,7 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
         }
 
-        private string GetColorAsistencia(RegistroAsistenciaDTO registro)
+        public string GetColorAsistencia(RegistroAsistenciaDTO registro)
         {
             if (!registro.tipo_reporte.Equals("Entrada") && !registro.tipo_reporte.Equals("Salida"))
             {
@@ -798,9 +798,6 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             }
 
             TimeSpan? hora = null;
-
-            List<DayOfWeek> l_v = new List<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
-            List<DayOfWeek> s = new List<DayOfWeek> { DayOfWeek.Saturday };
 
             DayOfWeek dia = registro.fecha_adicion.GetValueOrDefault().DayOfWeek;
 

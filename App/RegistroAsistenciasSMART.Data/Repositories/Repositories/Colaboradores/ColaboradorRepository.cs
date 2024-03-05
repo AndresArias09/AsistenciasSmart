@@ -264,27 +264,27 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
 
             var sql = @"
                         select
-                            ra.fecha_adicion,
-                            c.cedula,
-                            c.nombres,
-                            c.apellidos,
-                            ra.sede,
-                            c.area,
-                            ra.tipo_reporte,
-                            c.correo,
-                            ra.latitud,
-                            ra.longitud,
-                            ra.ip_address,
-                            c.cargo,
-                            c.jefe_inmediato,
-                            c.hora_entrada_lv,
-                            c.hora_salida_lv,
-                            c.hora_entrada_s,
-                            c.hora_salida_s
-                        from 
-                        asistencia.colaborador c 
-                        inner join asistencia.registro_asistencia ra on c.cedula = ra.cedula_colaborador 
-                        where cedula > 0
+                        ra.fecha_adicion,
+                        c.cedula,
+                        c.nombres,
+                        c.apellidos,
+                        ra.sede,
+                        c.area,
+                        ra.tipo_reporte,
+                        c.correo,
+                        ra.latitud,
+                        ra.longitud,
+                        ra.ip_address,
+                        c.cargo,
+                        (select concat(j.cedula,' - ',j.nombres,' ',j.apellidos) from asistencia.colaborador j where j.cedula = c.jefe_inmediato) as jefe_inmediato,
+                        c.hora_entrada_lv,
+                        c.hora_salida_lv,
+                        c.hora_entrada_s,
+                        c.hora_salida_s
+                    from 
+                    asistencia.colaborador c 
+                    inner join asistencia.registro_asistencia ra on c.cedula = ra.cedula_colaborador 
+                    where cedula > 0
             ";
 
             if(filtros.fecha_desde is not null)

@@ -7,6 +7,7 @@
 @using RegistroAsistenciasSMART.Model.Models.Colaboradores
 @using RegistroAsistenciasSMART.Services.Interfaces.Colaboradores
 @using RegistroAsistenciasSMART.Services.Interfaces.Configuracion.Perfilamiento
+@using RegistroAsistenciasSMART.Web.Models
 
 @inject IColaboradorService _colaboradorService
 @inject IUserService _userService
@@ -142,12 +143,6 @@ else
         }
     }
 
-    public class UbicacionDTO
-    {
-        public bool permitida;
-        public string latitud;
-        public string longitud;
-    }
 
     private async Task procesarUbicacion()
     {

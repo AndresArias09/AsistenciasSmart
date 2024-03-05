@@ -69,5 +69,19 @@ namespace RegistroAsistenciasSMART.Services.Interfaces.Colaboradores
         /// <param name="filtros">Filtros aplicados al reporte</param>
         /// <returns>Archivo .xlsx del reporte resultante</returns>
         public Task<Archivo> generarReporteRegistroAsistencias(FiltroAsistencia filtros);
+        /// <summary>
+        /// Determina si un registro de asistencia se realiza dentro del horario correcto asignado al colaborador
+        /// </summary>
+        /// <param name="registro">Información del registro de asistencia</param>
+        /// <returns><c>green</c> en caso de que el registro de asistencia esté dentro del rango horario correcto, 
+        /// <c>red</c> en caso de que el registro de asistencia esté fuera del rango correcto y <c>gray</c> en caso
+        /// de no tener suficiente información</returns>
+        public string GetColorAsistencia(RegistroAsistenciaDTO registro);
+        /// <summary>
+        /// Obtiene la hora de entrada o salida según el día del registro de asistencia
+        /// </summary>
+        /// <param name="registro">Información del registro de asistencia</param>
+        /// <returns>Hora en formato am/pm</returns>
+        public string GetHorarioRegistroAsistencia(RegistroAsistenciaDTO registro);
     }
 }

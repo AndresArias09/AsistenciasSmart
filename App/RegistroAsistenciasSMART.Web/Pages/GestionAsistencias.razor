@@ -50,7 +50,7 @@
             <div class="d-flex flex-wrap justify-content-around align-items-center align-content-center mb-3">
                 <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Agregar nuevo colaborador" Click="@InsertRow" Disabled=@(colaboradorToInsert != null || colaboradorToUpdate != null) />
                 <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="add_circle_outline" class="mt-2 mb-4" Text="Cargar colaboradores masivamente" Click=@(() => _modalCargueMasivo.abrirModal()) />
-                <button type="button" class="btn btn-primary" @onclick="LoadData">Actualizar</button>
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" class="mt-2 mb-4" Text="Actualizar" Click=@(() => LoadData()) />
             </div>
             
             
@@ -371,20 +371,20 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="fecha_adicion" Title="Hora">
                         <Template Context="data">
-                            @(Convert.ToDateTime(data.fecha_adicion).ToString("hh:mm tt"))
+                            @(Convert.ToDateTime(data.fecha_adicion).ToString("hh:mm:ss tt"))
                         </Template>
                     </RadzenDataGridColumn>
 
                     <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="tipo_reporte" Title="Registro"></RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Title="Horario">
                         <Template Context="data">
-                            @GetHorarioRegistroAsistencia(data)
+                            @_colaboradorService.GetHorarioRegistroAsistencia(data)
                         </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Title="Estado">
                         <Template Context="data">
                             <center>
-                                <div style='width: 30px; height: 30px; -moz-border-radius: 50%; -webkit-border-radius: 50%; border-radius: 50%; background: @(GetColorAsistencia(data));'>
+                                <div style='width: 30px; height: 30px; -moz-border-radius: 50%; -webkit-border-radius: 50%; border-radius: 50%; background: @(_colaboradorService.GetColorAsistencia(data));'>
                                 </div>
                             </center>
                         </Template>
@@ -485,7 +485,7 @@
             </div>
             @if (datos_cargue_masivo.errores.Count > 0)
             {
-                <div style="max-width:500px">
+                <div style="max-height:500px">
                     <h4>Errores presentados en el archivo:</h4>
                     @foreach (var error in datos_cargue_masivo.errores)
                     {
@@ -1045,124 +1045,5 @@
             _logger.LogError(exe, "Error al consultar ubicación en maps");
             await _jsRuntime.SweetAlertUsual("Error", "Error al consultar información", TipoMensajeSweetAlert.error);
         }
-    }
-
-    private string GetHorarioRegistroAsistencia(RegistroAsistenciaDTO registro)
-    {
-        if (!registro.tipo_reporte.Equals("Entrada") && !registro.tipo_reporte.Equals("Salida"))
-        {
-            return "";
-        }
-
-        TimeSpan? hora = null;
-
-        List<DayOfWeek> l_v = new List<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
-        List<DayOfWeek> s = new List<DayOfWeek> { DayOfWeek.Saturday };
-
-        DayOfWeek dia = registro.fecha_adicion.GetValueOrDefault().DayOfWeek;
-
-        if (l_v.Contains(dia)) //Lunes a viernes
-        {
-            if (registro.tipo_reporte.Equals("Entrada"))
-            {
-                hora = registro.hora_entrada_lv;
-            }
-            else if (registro.tipo_reporte.Equals("Salida"))
-            {
-                hora = registro.hora_salida_lv;
-            }
-        }
-        else if (s.Contains(dia)) //Sábados
-        {
-            if (registro.tipo_reporte.Equals("Entrada"))
-            {
-                hora = registro.hora_entrada_s;
-            }
-            else if (registro.tipo_reporte.Equals("Salida"))
-            {
-                hora = registro.hora_salida_s;
-            }
-        }
-        else
-        {
-            return "";
-        }
-
-        if (hora is null) return "";
-
-        return DateTime.Now.Date.Add(hora.GetValueOrDefault()).ToString("hh:mm tt");
-
-    }
-
-    private string GetColorAsistencia(RegistroAsistenciaDTO registro)
-    {
-        if (!registro.tipo_reporte.Equals("Entrada") && !registro.tipo_reporte.Equals("Salida"))
-        {
-            return "gray";
-        }
-
-        TimeSpan? hora = null;
-
-        List<DayOfWeek> l_v = new List<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
-        List<DayOfWeek> s = new List<DayOfWeek> { DayOfWeek.Saturday };
-
-        DayOfWeek dia = registro.fecha_adicion.GetValueOrDefault().DayOfWeek;
-
-        if (l_v.Contains(dia)) //Lunes a viernes
-        {
-            if (registro.tipo_reporte.Equals("Entrada"))
-            {
-                hora = registro.hora_entrada_lv;
-            }
-            else if (registro.tipo_reporte.Equals("Salida"))
-            {
-                hora = registro.hora_salida_lv;
-            }
-        }
-        else if (s.Contains(dia)) //Sábados
-        {
-            if (registro.tipo_reporte.Equals("Entrada"))
-            {
-                hora = registro.hora_entrada_s;
-            }
-            else if (registro.tipo_reporte.Equals("Salida"))
-            {
-                hora = registro.hora_salida_s;
-            }
-        }
-        else
-        {
-            return "gray";
-        }
-
-        if (hora is null) return "gray";
-
-        TimeSpan hora_registro = registro.fecha_adicion.GetValueOrDefault().TimeOfDay;
-
-        if (registro.tipo_reporte.Equals("Entrada"))
-        {
-            if (hora_registro > hora)
-            {
-                return "red";
-            }
-            else
-            {
-                return "green";
-            }
-        }
-        else if (registro.tipo_reporte.Equals("Salida"))
-        {
-            if (hora_registro < hora)
-            {
-                return "red";
-            }
-            else
-            {
-                return "green";
-            }
-        }
-
-        return "gray";
-
     }
 }
