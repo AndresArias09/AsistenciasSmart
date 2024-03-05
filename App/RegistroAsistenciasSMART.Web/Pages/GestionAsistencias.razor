@@ -1053,5 +1053,7 @@
         jefes = await _colaboradorService.consultarJefesInmediatos();
 
         jefes = jefes.Where(j => j.nombres.ToLower().Contains(args.Filter.ToLower()) || j.apellidos.ToLower().Contains(args.Filter.ToLower()));
+
+        StateHasChanged();
     }
 }
