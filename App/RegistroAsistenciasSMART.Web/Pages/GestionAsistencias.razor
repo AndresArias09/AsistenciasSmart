@@ -974,6 +974,8 @@
         colaboradores = await tcolaboradores;
         jefes = await tjefes;
 
+        colaboradores = colaboradores.OrderByDescending(c => c.fecha_adicion);
+
         colaboradores_temp = colaboradores;
         sedes = colaboradores.DistinctBy(c => c.sede).Select(c => c.sede);
         areas = colaboradores.DistinctBy(c => c.area).Select(c => c.area);
