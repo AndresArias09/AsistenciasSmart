@@ -8,6 +8,12 @@
 @inject IUserService _userService
 @inject ILogger<HomePerfilamiento> _logger
 
+<style>
+	
+
+}
+</style>
+
 @if (_isLoading)
 {
 	<_Loading></_Loading>
@@ -23,7 +29,7 @@ else
 	</div>
 
 
-	<div class="row row-cards">
+	<div class="row-cards">
 		@* ROLES *@
 		<ModuleAuthorizationView id_modulo="2">
 			<Authorize>

@@ -1,4 +1,26 @@
-﻿h6 {
+﻿.row-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.col {
+    max-width: 450px !important;
+}
+
+@media only screen and (max-width: 620px) {
+    .row-cards {
+        flex-direction: column !important;
+        align-items:center;
+    }
+
+    .card {
+        padding-bottom: 10px !important;
+    }
+}
+
+
+h6 {
     color: #545454;
 }
 
@@ -8,22 +30,19 @@
     height: 100% !important;
 }
 
-.col-xl-3, .col-xl-4 {
-    margin-top: 5px !important;
-    margin-bottom: 5px !important;
+
+@media only screen and (max-width: 1060px) {
+    .cont {
+        display: none !important;
+    }
 }
 
-
-@media only screen and (min-width: 1039px) {
-    .row {
-        margin-left: 3rem !important;
-        margin-right: 3rem !important;
-    }
-
+@media only screen and (min-width: 1060px) {
     .row-cards {
         transform: translateY(-100px);
     }
 }
+
 
 .card-body {
     padding-top: 0px;
@@ -55,10 +74,8 @@ a:hover > .card {
     margin-bottom: 10px;
 }
 
-@media only screen and (max-width: 620px) {
-    .cont {
-        display: none !important;
-    }
+.cont img{
+    max-height: 385px !important;
 }
 
 /* Top left text */
@@ -71,12 +88,12 @@ a:hover > .card {
 }
 
 
-    .top-left h5 {
-        font-weight: 300;
-        color: white !important;
-    }
+.top-left h5 {
+    font-weight: 300;
+    color: white !important;
+}
 
-    .top-left h1 {
-        font-weight: 600;
-        color: white !important;
-    }
+.top-left h1 {
+    font-weight: 600;
+    color: white !important;
+}

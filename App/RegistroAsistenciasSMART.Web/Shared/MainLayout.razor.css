@@ -4,3 +4,9 @@
     inset: 0px 0px auto auto;
     transform: translate(0px, 38px);
 }
+
+@media only screen and (min-width: 1921px) {
+    .page-content, .page-header-content {
+        zoom: 150% !important;
+    }
+}
