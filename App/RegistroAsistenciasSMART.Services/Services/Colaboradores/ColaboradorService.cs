@@ -27,8 +27,17 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
         private readonly SqlConfiguration _sqlConfiguration;
         private readonly IColaboradorRepository _colaboradorRepository;
         private readonly IUserService _userService;
-
-        private readonly List<DayOfWeek> l_v = new List<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
+        /// <summary>
+        /// Lista de días de lunes a jueves
+        /// </summary>
+        private readonly List<DayOfWeek> l_j = new List<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday};
+        /// <summary>
+        /// Lista de días Viernes
+        /// </summary>
+        private readonly List<DayOfWeek> v = new List<DayOfWeek> { DayOfWeek.Friday };
+        /// <summary>
+        /// Lista de días Sábados
+        /// </summary>
         private readonly List<DayOfWeek> s = new List<DayOfWeek> { DayOfWeek.Saturday };
 
         private ILogger<ColaboradorService> _logger;
@@ -66,6 +75,9 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             colaborador.sede = colaborador.sede.Trim();
             colaborador.nombres = colaborador.nombres.Trim();
             colaborador.apellidos = colaborador.apellidos.Trim();
+
+            colaborador.sede = colaborador.sede.ToUpper();
+            colaborador.area = colaborador.area.ToUpper();
         }
         private void limpiarInfoRegistroAsistencia(RegistroAsistencia registro)
         {
@@ -122,16 +134,6 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             if (string.IsNullOrEmpty(colaborador.usuario_adiciono))
             {
                 return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar el usuario que adiciona al colaborador" };
-            }
-
-            if(colaborador.hora_entrada_lv is null)
-            {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la hora de entrada del colaborador para los días Lunes-Viernes" };
-            }
-
-            if (colaborador.hora_salida_lv is null)
-            {
-                return new ResponseDTO() { estado = "ERROR", descripcion = "Debes indicar la hora de salida del colaborador para los días Lunes-Viernes" };
             }
 
             return new ResponseDTO() { estado = "OK"};
@@ -235,8 +237,10 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                     string jefe_inmediato = "";
                     string sede = "";
                     string correo = "";
-                    DateTime? hora_entrada_lv = null;
-                    DateTime? hora_salida_lv = null;
+                    DateTime? hora_entrada_lj = null;
+                    DateTime? hora_salida_lj = null;
+                    DateTime? hora_entrada_v = null;
+                    DateTime? hora_salida_v = null;
                     DateTime? hora_entrada_s = null;
                     DateTime? hora_salida_s = null;
 
@@ -250,8 +254,10 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                         jefe_inmediato = "";
                         sede = "";
                         correo = "";
-                        hora_entrada_lv = null;
-                        hora_salida_lv = null;
+                        hora_entrada_lj = null;
+                        hora_salida_lj = null;
+                        hora_entrada_v = null;
+                        hora_salida_v = null;
                         hora_entrada_s = null;
                         hora_salida_s = null;
 
@@ -288,10 +294,16 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
                             correo = UtilidadesExcel.getCellValue(contadorCelda, fila);
 
                             contadorCelda++;
-                            hora_entrada_lv = UtilidadesExcel.getCellDateValue(contadorCelda, fila);
+                            hora_entrada_lj = UtilidadesExcel.getCellDateValue(contadorCelda, fila);
 
                             contadorCelda++;
-                            hora_salida_lv = UtilidadesExcel.getCellDateValue(contadorCelda, fila);
+                            hora_salida_lj = UtilidadesExcel.getCellDateValue(contadorCelda, fila);
+
+                            contadorCelda++;
+                            hora_entrada_v = UtilidadesExcel.getCellDateValue(contadorCelda, fila);
+
+                            contadorCelda++;
+                            hora_salida_v = UtilidadesExcel.getCellDateValue(contadorCelda, fila);
 
                             contadorCelda++;
                             hora_entrada_s = UtilidadesExcel.getCellDateValue(contadorCelda, fila);
@@ -344,8 +356,10 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
                             colaborador.cedula = cedula_value;
                             colaborador.jefe_inmediato = cedula_jefe_inmediato_value;
-                            colaborador.hora_entrada_lv = hora_entrada_lv is null ? null : hora_entrada_lv.GetValueOrDefault().TimeOfDay;
-                            colaborador.hora_salida_lv = hora_salida_lv is null ? null : hora_salida_lv.GetValueOrDefault().TimeOfDay;
+                            colaborador.hora_entrada_lj = hora_entrada_lj is null ? null : hora_entrada_lj.GetValueOrDefault().TimeOfDay;
+                            colaborador.hora_salida_lj = hora_salida_lj is null ? null : hora_salida_lj.GetValueOrDefault().TimeOfDay;
+                            colaborador.hora_entrada_v = hora_entrada_v is null ? null : hora_entrada_v.GetValueOrDefault().TimeOfDay;
+                            colaborador.hora_salida_v = hora_salida_v is null ? null : hora_salida_v.GetValueOrDefault().TimeOfDay;
                             colaborador.hora_entrada_s = hora_entrada_s is null ? null : hora_entrada_s.GetValueOrDefault().TimeOfDay;
                             colaborador.hora_salida_s = hora_salida_s is null ? null : hora_salida_s.GetValueOrDefault().TimeOfDay;
                             
@@ -476,6 +490,23 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
             if (!respuesta_validacion.estado.Equals("OK"))
             {
                 return respuesta_validacion;
+            }
+
+            if (registro.tipo_reporte.Equals("Traslado Salida") || registro.tipo_reporte.Equals("Traslado Entrada"))
+            {
+                FiltroAsistencia filtros = new FiltroAsistencia()
+                {
+                    cedula = registro.cedula_colaborador,
+                    fecha_desde = DateTime.Now.Date,
+                    tipo_reporte = "Entrada"
+                };
+
+                IEnumerable<RegistroAsistenciaDTO> registros_entrada = await _colaboradorRepository.consultarRegistrosAsistencia(filtros);
+
+                if (registros_entrada.Count() <= 0)
+                {
+                    return new ResponseDTO() { estado = "ERROR", descripcion = "No se ha registrado una entrada hoy para el colaborador indicado"};
+                }
             }
 
             Colaborador colaborador = await _colaboradorRepository.consultarColaboradorByCedula(registro.cedula_colaborador.GetValueOrDefault());
@@ -757,15 +788,26 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             DayOfWeek dia = registro.fecha_adicion.GetValueOrDefault().DayOfWeek;
 
-            if (l_v.Contains(dia)) //Lunes a viernes
+            if (l_j.Contains(dia)) //Lunes a jueves
             {
                 if (registro.tipo_reporte.Equals("Entrada"))
                 {
-                    hora = registro.hora_entrada_lv;
+                    hora = registro.hora_entrada_lj;
                 }
                 else if (registro.tipo_reporte.Equals("Salida"))
                 {
-                    hora = registro.hora_salida_lv;
+                    hora = registro.hora_salida_lj;
+                }
+            }
+            else if (v.Contains(dia)) //Viernes
+            {
+                if (registro.tipo_reporte.Equals("Entrada"))
+                {
+                    hora = registro.hora_entrada_v;
+                }
+                else if (registro.tipo_reporte.Equals("Salida"))
+                {
+                    hora = registro.hora_salida_v;
                 }
             }
             else if (s.Contains(dia)) //Sábados
@@ -801,15 +843,26 @@ namespace RegistroAsistenciasSMART.Services.Services.Colaboradores
 
             DayOfWeek dia = registro.fecha_adicion.GetValueOrDefault().DayOfWeek;
 
-            if (l_v.Contains(dia)) //Lunes a viernes
+            if (l_j.Contains(dia)) //Lunes a jueves
             {
                 if (registro.tipo_reporte.Equals("Entrada"))
                 {
-                    hora = registro.hora_entrada_lv;
+                    hora = registro.hora_entrada_lj;
                 }
                 else if (registro.tipo_reporte.Equals("Salida"))
                 {
-                    hora = registro.hora_salida_lv;
+                    hora = registro.hora_salida_lj;
+                }
+            }
+            else if (v.Contains(dia)) //Viernes
+            {
+                if (registro.tipo_reporte.Equals("Entrada"))
+                {
+                    hora = registro.hora_entrada_v;
+                }
+                else if (registro.tipo_reporte.Equals("Salida"))
+                {
+                    hora = registro.hora_salida_v;
                 }
             }
             else if (s.Contains(dia)) //Sábados

@@ -56,13 +56,22 @@ namespace RegistroAsistenciasSMART.Model.Models.Colaboradores
         /// </summary>
         public DateTime fecha_adicion { get; set; }
         /// <summary>
-        /// Hora de entrada del colaborador de Lunes a Viernes
+        /// Hora de entrada del colaborador de Lunes a Jueves
         /// </summary>
-        public TimeSpan? hora_entrada_lv { get; set; }
+        public TimeSpan? hora_entrada_lj { get; set; }
         /// <summary>
-        /// Hora de salida del colaborador de Lunes a Viernes
+        /// Hora de salida del colaborador de Lunes a Jueves
         /// </summary>
-        public TimeSpan? hora_salida_lv { get; set; }
+        public TimeSpan? hora_salida_lj { get; set; }
+
+        /// <summary>
+        /// Hora de entrada del colaborador los Viernes
+        /// </summary>
+        public TimeSpan? hora_entrada_v { get; set; }
+        /// <summary>
+        /// Hora de salida del colaborador los Viernes
+        /// </summary>
+        public TimeSpan? hora_salida_v { get; set; }
         /// <summary>
         /// Hora de entrada del colaborador los Sábados
         /// </summary>
@@ -71,5 +80,9 @@ namespace RegistroAsistenciasSMART.Model.Models.Colaboradores
         /// Hora de salida del colaborador los Sábados
         /// </summary>
         public TimeSpan? hora_salida_s { get; set; }
+        /// <summary>
+        /// Observaciones sobre el colaborador
+        /// </summary>
+        public string observaciones { get; set; } = "";
     }
 }

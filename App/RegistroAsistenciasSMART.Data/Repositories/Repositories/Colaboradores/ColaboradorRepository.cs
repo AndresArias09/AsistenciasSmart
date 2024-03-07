@@ -37,10 +37,13 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
                             estado,
                             fecha_adicion,
                             usuario_adiciono,
-                            hora_entrada_lv,
-                            hora_salida_lv,
+                            hora_entrada_lj,
+                            hora_salida_lj,
+                            hora_entrada_v,
+                            hora_salida_v,
                             hora_entrada_s,
-                            hora_salida_s
+                            hora_salida_s,
+                            observaciones
                             FROM asistencia.colaborador
                         where cedula = @cedula;
                         ";
@@ -67,10 +70,13 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
                             estado,
                             fecha_adicion,
                             usuario_adiciono,
-                            hora_entrada_lv,
-                            hora_salida_lv,
+                            hora_entrada_lj,
+                            hora_salida_lj,
+                            hora_entrada_v,
+                            hora_salida_v,
                             hora_entrada_s,
-                            hora_salida_s
+                            hora_salida_s,
+                            observaciones
                         FROM asistencia.colaborador
                         ";
 
@@ -92,10 +98,13 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
                             estado,
                             fecha_adicion,
                             usuario_adiciono,
-                            hora_entrada_lv,
-                            hora_salida_lv,
+                            hora_entrada_lj,
+                            hora_salida_lj,
+                            hora_entrada_v,
+                            hora_salida_v,
                             hora_entrada_s,
-                            hora_salida_s
+                            hora_salida_s,
+                            observaciones
                         FROM asistencia.colaborador
                         where cedula in 
                         (
@@ -122,10 +131,13 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
 	                        estado,
 	                        fecha_adicion,
 	                        usuario_adiciono,
-	                        hora_entrada_lv,
-	                        hora_salida_lv,
+	                        hora_entrada_lj,
+	                        hora_salida_lj,
+	                        hora_entrada_v,
+	                        hora_salida_v,
 	                        hora_entrada_s,
-	                        hora_salida_s
+	                        hora_salida_s,
+                            observaciones
                         )
                         values
                         (
@@ -140,10 +152,13 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
 	                        @p_estado,
 	                        CURRENT_TIMESTAMP,
 	                        @p_usuario_adiciono,
-	                        @p_hora_entrada_lv,
-	                        @p_hora_salida_lv,
+	                        @p_hora_entrada_lj,
+	                        @p_hora_salida_lj,
+                            @p_hora_entrada_v,
+	                        @p_hora_salida_v,
 	                        @p_hora_entrada_s,
-	                        @p_hora_salida_s
+	                        @p_hora_salida_s,
+                            @p_observaciones
                         );";
 
             DynamicParameters p = new DynamicParameters();
@@ -157,10 +172,13 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
             p.Add("@p_correo", colaborador.correo);
             p.Add("@p_estado", colaborador.estado);
             p.Add("@p_usuario_adiciono", colaborador.usuario_adiciono);
-            p.Add("@p_hora_entrada_lv", colaborador.hora_entrada_lv);
-            p.Add("@p_hora_salida_lv", colaborador.hora_salida_lv);
+            p.Add("@p_hora_entrada_lj", colaborador.hora_entrada_lj);
+            p.Add("@p_hora_salida_lj", colaborador.hora_salida_lj);
+            p.Add("@p_hora_entrada_v", colaborador.hora_entrada_v);
+            p.Add("@p_hora_salida_v", colaborador.hora_salida_v);
             p.Add("@p_hora_entrada_s", colaborador.hora_entrada_s);
             p.Add("@p_hora_salida_s", colaborador.hora_salida_s);
+            p.Add("@p_observaciones", colaborador.observaciones);
 
             var result = await db.ExecuteAsync(sql,p);
 
@@ -181,11 +199,14 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
                         sede=@p_sede,
                         correo=@p_correo,
                         estado=@p_estado,
-                        hora_entrada_lv=@p_hora_entrada_lv,
-                        hora_salida_lv=@p_hora_salida_lv,
+                        hora_entrada_lj=@p_hora_entrada_lj,
+                        hora_salida_lj=@p_hora_salida_lj,
+                        hora_entrada_v=@p_hora_entrada_v,
+                        hora_salida_v=@p_hora_salida_v,
                         hora_entrada_s=@p_hora_entrada_s,
                         hora_salida_s=@p_hora_salida_s,
-                        usuario_adiciono=@p_usuario_adiciono
+                        usuario_adiciono=@p_usuario_adiciono,
+                        observaciones=@p_observaciones
                         WHERE cedula = @p_cedula";
 
             DynamicParameters p = new DynamicParameters();
@@ -198,11 +219,14 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
             p.Add("@p_sede", colaborador.sede);
             p.Add("@p_correo", colaborador.correo);
             p.Add("@p_estado", colaborador.estado);
-            p.Add("@p_hora_entrada_lv", colaborador.hora_entrada_lv);
-            p.Add("@p_hora_salida_lv", colaborador.hora_salida_lv);
+            p.Add("@p_hora_entrada_lj", colaborador.hora_entrada_lj);
+            p.Add("@p_hora_salida_lj", colaborador.hora_salida_lj);
+            p.Add("@p_hora_entrada_v", colaborador.hora_entrada_v);
+            p.Add("@p_hora_salida_v", colaborador.hora_salida_v);
             p.Add("@p_hora_entrada_s", colaborador.hora_entrada_s);
             p.Add("@p_hora_salida_s", colaborador.hora_salida_s);
             p.Add("@p_usuario_adiciono", colaborador.usuario_adiciono);
+            p.Add("@p_observaciones", colaborador.observaciones);
 
             var result = await db.ExecuteAsync(sql, p);
 
@@ -279,10 +303,13 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
                         ra.ip_address,
                         c.cargo,
                         (select concat(j.cedula,' - ',j.nombres,' ',j.apellidos) from asistencia.colaborador j where j.cedula = c.jefe_inmediato) as jefe_inmediato,
-                        c.hora_entrada_lv,
-                        c.hora_salida_lv,
+                        c.hora_entrada_lj,
+                        c.hora_salida_lj,
+                        c.hora_entrada_v,
+                        c.hora_salida_v,
                         c.hora_entrada_s,
-                        c.hora_salida_s
+                        c.hora_salida_s,
+                        c.observaciones
                     from 
                     asistencia.colaborador c 
                     inner join asistencia.registro_asistencia ra on c.cedula = ra.cedula_colaborador 
@@ -291,12 +318,12 @@ namespace RegistroAsistenciasSMART.Data.Repositories.Repositories.Colaboradores
 
             if(filtros.fecha_desde is not null)
             {
-                sql += " and date(ra.fecha_SQL) >= date(@fecha_desde)";
+                sql += " and date(ra.fecha_adicion) >= date(@fecha_desde)";
             }
 
             if (filtros.fecha_hasta is not null)
             {
-                sql += " and date(ra.fecha_SQL) <= date(@fecha_hasta)";
+                sql += " and date(ra.fecha_adicion) <= date(@fecha_hasta)";
             }
 
             if (!string.IsNullOrEmpty(filtros.nombres))

@@ -64,13 +64,21 @@ namespace RegistroAsistenciasSMART.Model.Models.Colaboradores
         /// </summary>
         public string cargo { get; set; } = "";
         /// <summary>
-        /// Hora de entrada del colaborador de Lunes a Viernes
+        /// Hora de entrada del colaborador de Lunes a Jueves
         /// </summary>
-        public TimeSpan? hora_entrada_lv { get; set; }
+        public TimeSpan? hora_entrada_lj { get; set; }
         /// <summary>
-        /// Hora de salida del colaborador de Lunes a Viernes
+        /// Hora de salida del colaborador de Lunes a Jueves
         /// </summary>
-        public TimeSpan? hora_salida_lv { get; set; }
+        public TimeSpan? hora_salida_lj { get; set; }
+        /// <summary>
+        /// Hora de entrada del colaborador los Viernes
+        /// </summary>
+        public TimeSpan? hora_entrada_v { get; set; }
+        /// <summary>
+        /// Hora de salida del colaborador los Viernes
+        /// </summary>
+        public TimeSpan? hora_salida_v { get; set; }
         /// <summary>
         /// Hora de entrada del colaborador los Sábados
         /// </summary>

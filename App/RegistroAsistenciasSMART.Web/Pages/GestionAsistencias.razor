@@ -48,9 +48,27 @@
 
         <div class="card-body">
             <div class="d-flex flex-wrap justify-content-around align-items-center align-content-center mb-3">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Agregar nuevo colaborador" Click="@InsertRow" Disabled=@(colaboradorToInsert != null || colaboradorToUpdate != null) />
-                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="add_circle_outline" class="mt-2 mb-4" Text="Cargar colaboradores masivamente" Click=@(() => _modalCargueMasivo.abrirModal()) />
-                <RadzenButton ButtonStyle="ButtonStyle.Secondary" class="mt-2 mb-4" Text="Actualizar" Click=@(() => LoadData()) />
+                <RadzenButton 
+                    ButtonStyle="ButtonStyle.Success"
+                    Icon="add_circle_outline"
+                    class="mt-2 mb-4"
+                    Text="Agregar nuevo colaborador"
+                    Click="@InsertRow"
+                    Disabled=@(colaboradorToInsert != null || colaboradorToUpdate != null) 
+                />
+                <RadzenButton 
+                    ButtonStyle="ButtonStyle.Info"
+                    Icon="add_circle_outline"
+                    class="mt-2 mb-4"
+                    Text="Cargar colaboradores masivamente"
+                    Click=@(() => _modalCargueMasivo.abrirModal()) 
+                />
+                <RadzenButton 
+                    ButtonStyle="ButtonStyle.Secondary"
+                    class="mt-2 mb-4"
+                    Text="Actualizar"
+                    Click=@(() => LoadData()) 
+                />
             </div>
             
             
@@ -67,28 +85,60 @@
                                Page="@Reset"
                                Filter="@Reset">
                 <Columns>
-                    <RadzenDataGridColumn TItem="Colaborador" Frozen="true" Context="Colaborador" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="200px">
+                    <RadzenDataGridColumn 
+                        TItem="Colaborador" 
+                        Frozen="true" 
+                        Context="Colaborador"
+                        Filterable="false"
+                        Sortable="false"
+                        TextAlign="TextAlign.Center"
+                        Width="200px">
                         <Template Context="colaborador">
-                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(colaborador))" @onclick:stopPropagation="true">
+                            <RadzenButton 
+                                Icon="edit"
+                                ButtonStyle="ButtonStyle.Light"
+                                Variant="Variant.Flat"
+                                Size="ButtonSize.Medium"
+                                Click="@(args => EditRow(colaborador))"
+                                @onclick:stopPropagation="true">
                             </RadzenButton>
                             
                         </Template>
                         <EditTemplate Context="colaborador">
-                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(colaborador))">
+                            <RadzenButton
+                                Icon="check"
+                                ButtonStyle="ButtonStyle.Success"
+                                Variant="Variant.Flat"
+                                Size="ButtonSize.Medium"
+                                Click="@((args) => SaveRow(colaborador))">
                             </RadzenButton>
-                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(colaborador))">
+                            <RadzenButton 
+                                Icon="close"
+                                ButtonStyle="ButtonStyle.Light"
+                                Variant="Variant.Flat"
+                                Size="ButtonSize.Medium"
+                                class="my-1 ms-1"
+                                Click="@((args) => CancelEdit(colaborador))">
                             </RadzenButton>
 
                         </EditTemplate>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="fecha_adicion" Title="Fecha de Adición">
+                    <RadzenDataGridColumn 
+                        TItem="Colaborador"
+                        Property="fecha_adicion"
+                        Title="Fecha de Adición"
+                    >
                         <EditTemplate Context="colaborador">
                             <div style="text-align:center">
                                 @("-")
                             </div>
                         </EditTemplate>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="cedula" Title="Cédula">
+                    <RadzenDataGridColumn 
+                        TItem="Colaborador"
+                        Property="cedula"
+                        Title="Cédula"
+                    >
                         <EditTemplate Context="colaborador">
                             @if (colaboradorToUpdate is null)
                             {
@@ -103,7 +153,11 @@
                             @colaborador.cedula
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="nombres" Title="Nombres">
+                    <RadzenDataGridColumn
+                        TItem="Colaborador"
+                        Property="nombres"
+                        Title="Nombres"
+                    >
                         <EditTemplate Context="colaborador">
                             <input type="text" class="form-control" @bind-value="colaborador.nombres" />
                         </EditTemplate>
@@ -111,7 +165,11 @@
                             @colaborador.nombres
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="apellidos" Title="Apellidos">
+                    <RadzenDataGridColumn 
+                        TItem="Colaborador" 
+                        Property="apellidos" 
+                        Title="Apellidos"
+                    >
                         <EditTemplate Context="colaborador">
                             <input type="text" class="form-control" @bind-value="colaborador.apellidos" />
                         </EditTemplate>
@@ -119,7 +177,10 @@
                             @colaborador.apellidos
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="cargo" Title="Cargo">
+                    <RadzenDataGridColumn 
+                        TItem="Colaborador"
+                        Property="cargo"
+                        Title="Cargo">
                         <EditTemplate Context="colaborador">
                             <input type="text" class="form-control" @bind-value="colaborador.cargo" />
                         </EditTemplate>
@@ -127,29 +188,80 @@
                             @colaborador.cargo
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="area" Title="Área" Type="typeof(IEnumerable<string>)" FilterValue="@selectedAreaIds" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                    <RadzenDataGridColumn 
+                        TItem="Colaborador"
+                        Property="area"
+                        Title="Área"
+                        Type="typeof(IEnumerable<string>)"
+                        FilterValue="@selectedAreaIds"
+                        FilterOperator="FilterOperator.Contains"
+                        LogicalFilterOperator="LogicalFilterOperator.Or"
+                    >
                         <FilterTemplate>
-                            <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"  SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedAreaIds Style="width:100%;"
-                                            Change=@OnselectedAreaIdsChange Data="@(areas)" AllowClear="true" Multiple="true" />
+                            <RadzenDropDown
+                                AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                SelectedItemsText="item(s) selecionado(s)"
+                                SelectAllText="Seleccionar todos"
+                                @bind-Value=@selectedAreaIds 
+                                Style="width:100%;"
+                                Change=@OnselectedAreaIdsChange
+                                Data="@(areas)"
+                                AllowClear="true"
+                                Multiple="true" 
+                            />
                         </FilterTemplate>
                         <EditTemplate Context="colaborador">
-                            <input type="text" class="form-control" @bind-value="colaborador.area" />
+                            <RadzenAutoComplete 
+                                @bind-Value=@colaborador.area
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                Data=@areas
+                            />
                         </EditTemplate>
                         <Template Context="colaborador">
                             @colaborador.area
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="jefe_inmediato" Title="Jefe Inmediato" Type="typeof(IEnumerable<long?>)" FilterValue="@selectedJefeIds" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                    <RadzenDataGridColumn 
+                        TItem="Colaborador"
+                        Property="jefe_inmediato"
+                        Title="Jefe Inmediato"
+                        Type="typeof(IEnumerable<long?>)"
+                        FilterValue="@selectedJefeIds"
+                        FilterOperator="FilterOperator.Contains"
+                        LogicalFilterOperator="LogicalFilterOperator.Or"
+                    >
                         <FilterTemplate>
-                            <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" TValue="IEnumerable<long?>" SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedJefeIds Style="width:100%;"
-                                            Change=@OnselectedJefeIdsChange Data="@(jefes)" AllowClear="true" ValueProperty="cedula" Multiple="true" >
+                            <RadzenDropDown
+                                AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                TValue="IEnumerable<long?>"
+                                SelectedItemsText="item(s) selecionado(s)"
+                                SelectAllText="Seleccionar todos" 
+                                @bind-Value=@selectedJefeIds 
+                                Style="width:100%;"
+                                Change=@OnselectedJefeIdsChange 
+                                Data="@(jefes)" 
+                                AllowClear="true" 
+                                ValueProperty="cedula" 
+                                Multiple="true" 
+                            >
                                 <Template Context="jefe">
                                     @jefe.nombres @jefe.apellidos
                                 </Template>
                             </RadzenDropDown>
                         </FilterTemplate>
                         <EditTemplate Context="colaborador">
-                            <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value=@colaborador.jefe_inmediato TValue="long?" Data="@(colaboradores)" ValueProperty="cedula" AllowClear="true" Style="width: 100%">
+                            <RadzenDropDown 
+                                AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                @bind-Value=@colaborador.jefe_inmediato 
+                                TValue="long?" 
+                                Data="@(colaboradores)"
+                                ValueProperty="cedula"
+                                AllowClear="true"
+                                Style="width: 100%"
+                            >
                                 <Template>
                                     @context.nombres @context.apellidos
                                 </Template>
@@ -165,23 +277,46 @@
                             )
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="sede" Title="Sede" Type="typeof(IEnumerable<string>)" FilterValue="@selectedSedeIds" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                    <RadzenDataGridColumn 
+                        TItem="Colaborador"
+                        Property="sede"
+                        Title="Sede"
+                        Type="typeof(IEnumerable<string>)"
+                        FilterValue="@selectedSedeIds"
+                        FilterOperator="FilterOperator.Contains"
+                        LogicalFilterOperator="LogicalFilterOperator.Or"
+                    >
                         <FilterTemplate>
-                            <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedSedeIds Style="width:100%;"
-                                            Change=@OnselectedSedeIdsChange Data="@(sedes)" AllowClear="true" Multiple="true" >
-                                
+                            <RadzenDropDown 
+                                AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                SelectedItemsText="item(s) selecionado(s)"
+                                SelectAllText="Seleccionar todos"
+                                @bind-Value=@selectedSedeIds 
+                                Style="width:100%;"
+                                Change=@OnselectedSedeIdsChange 
+                                Data="@(sedes)"
+                                AllowClear="true"
+                                Multiple="true" >
                             </RadzenDropDown>
                         </FilterTemplate>
                         <EditTemplate Context="colaborador">
-                            <RadzenAutoComplete @bind-Value=@colaborador.sede FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@sedes>
-
+                            <RadzenAutoComplete 
+                                @bind-Value=@colaborador.sede
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                Data=@sedes
+                            >
                             </RadzenAutoComplete>
                         </EditTemplate>
                         <Template Context="colaborador">
                             @colaborador.sede
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="correo" Title="Correo">
+                    <RadzenDataGridColumn 
+                        TItem="Colaborador"
+                        Property="correo"
+                        Title="Correo"
+                    >
                         <EditTemplate Context="colaborador">
                             <input type="email" class="form-control" @bind-value="colaborador.correo" />
                         </EditTemplate>
@@ -189,53 +324,123 @@
                             @colaborador.correo
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="estado" Title="Estado" Type="typeof(IEnumerable<long?>)" FilterValue="@selectedEstadoIds" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                    <RadzenDataGridColumn 
+                        TItem="Colaborador" 
+                        Property="estado" 
+                        Title="Estado"
+                        Type="typeof(IEnumerable<long?>)"
+                        FilterValue="@selectedEstadoIds" 
+                        FilterOperator="FilterOperator.Contains" 
+                        LogicalFilterOperator="LogicalFilterOperator.Or"
+                    >
                         <FilterTemplate>
-                            <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" TValue="IEnumerable<long?>" SelectedItemsText="item(s) selecionado(s)" SelectAllText="Seleccionar todos" @bind-Value=@selectedEstadoIds Style="width:100%;"
-                                            Change=@OnselectedEstadoIdsChange Data="@(estados)" AllowClear="true" ValueProperty="id_estado" TextProperty="descripcion" Multiple="true" />
+                            <RadzenDropDown 
+                                AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                TValue="IEnumerable<long?>"
+                                SelectedItemsText="item(s) selecionado(s)"
+                                SelectAllText="Seleccionar todos"
+                                @bind-Value=@selectedEstadoIds
+                                Style="width:100%;"
+                                Change=@OnselectedEstadoIdsChange
+                                Data="@(estados)"
+                                AllowClear="true"
+                                ValueProperty="id_estado"
+                                TextProperty="descripcion"
+                                Multiple="true" 
+                            />
                         </FilterTemplate>
                         <EditTemplate Context="colaborador">
-                            <RadzenDropDown AllowClear="false" TValue="long?" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Class="form-control"
-                                            Placeholder="[Seleccionar]" @bind-value="colaborador.estado" Data=@estados TextProperty="descripcion" ValueProperty="id_estado" />
+                            <RadzenDropDown 
+                                AllowClear="false"
+                                TValue="long?"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                AllowFiltering="true"
+                                Class="form-control"
+                                Placeholder="[Seleccionar]"
+                                @bind-value="colaborador.estado"
+                                Data=@estados
+                                TextProperty="descripcion"
+                                ValueProperty="id_estado" 
+                            />
                         </EditTemplate>
                         <Template Context="data">
                             <center>
-                                <div style='width: 30px; height: 30px; -moz-border-radius: 50%; -webkit-border-radius: 50%; border-radius: 50%; background: @(GetColor(data));'>
+                                <div class="circulo @(GetColor(data))">
                                 </div>
                             </center>
                         </Template>
                     </RadzenDataGridColumn>
-                   
-                    <RadzenDataGridColumn TItem="Colaborador" Title="Hora de entrada L-V">
+                    <RadzenDataGridColumn 
+                        TItem="Colaborador" 
+                        Title="Hora de entrada L-J"
+                    >
                         <EditTemplate Context="colaborador">
                             <div class="div-hora">
-                                <input type="time" class="form-control" @bind-value="hora_entrada_lv" />
-                                <input type="image" src="./images/trash-icon.png" @onclick=@(() => hora_entrada_lv = null) />
+                                <input type="time" class="form-control" @bind-value="hora_entrada_lj" />
+                                <input type="image" src="./images/trash-icon.png" @onclick=@(() => hora_entrada_lj = null) />
                             </div>
                         </EditTemplate>
                         <Template Context="colaborador">
-                            @if (colaborador.hora_entrada_lv is not null)
+                            @if (colaborador.hora_entrada_lj is not null)
                             {
-                                @(DateTime.Now.Date.Add(colaborador.hora_entrada_lv.GetValueOrDefault()).ToString("hh:mm tt"))
+                                @(DateTime.Now.Date.Add(colaborador.hora_entrada_lj.GetValueOrDefault()).ToString("hh:mm tt"))
                             }
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador"  Title="Hora de salida L-V">
+                    <RadzenDataGridColumn 
+                        TItem="Colaborador"
+                        Title="Hora de salida L-J"
+                    >
                         <EditTemplate Context="colaborador">
                             <div class="div-hora">
-                                <input type="time" class="form-control" @bind-value="hora_salida_lv" />
-                                <input type="image" src="./images/trash-icon.png" @onclick=@(() => hora_salida_lv = null) />
+                                <input type="time" class="form-control" @bind-value="hora_salida_lj" />
+                                <input type="image" src="./images/trash-icon.png" @onclick=@(() => hora_salida_lj = null) />
                             </div>
                             
                         </EditTemplate>
                         <Template Context="colaborador">
-                            @if (colaborador.hora_salida_lv is not null)
+                            @if (colaborador.hora_salida_lj is not null)
                             {
-                                @(DateTime.Now.Date.Add(colaborador.hora_salida_lv.GetValueOrDefault()).ToString("hh:mm tt"))
+                                @(DateTime.Now.Date.Add(colaborador.hora_salida_lj.GetValueOrDefault()).ToString("hh:mm tt"))
                             }
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador"  Title="Hora de entrada Sábados">
+                    <RadzenDataGridColumn TItem="Colaborador"
+                                          Title="Hora de entrada Viernes">
+                        <EditTemplate Context="colaborador">
+                            <div class="div-hora">
+                                <input type="time" class="form-control" @bind-value="hora_entrada_v" />
+                                <input type="image" src="./images/trash-icon.png" @onclick=@(() => hora_entrada_v = null) />
+                            </div>
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @if (colaborador.hora_entrada_v is not null)
+                            {
+                                @(DateTime.Now.Date.Add(colaborador.hora_entrada_v.GetValueOrDefault()).ToString("hh:mm tt"))
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Colaborador"
+                                          Title="Hora de salida Viernes">
+                        <EditTemplate Context="colaborador">
+                            <div class="div-hora">
+                                <input type="time" class="form-control" @bind-value="hora_salida_v" />
+                                <input type="image" src="./images/trash-icon.png" @onclick=@(() => hora_salida_v = null) />
+                            </div>
+
+                        </EditTemplate>
+                        <Template Context="colaborador">
+                            @if (colaborador.hora_salida_v is not null)
+                            {
+                                @(DateTime.Now.Date.Add(colaborador.hora_salida_v.GetValueOrDefault()).ToString("hh:mm tt"))
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn 
+                        TItem="Colaborador"
+                        Title="Hora de entrada Sábados"
+                    >
                         <EditTemplate Context="colaborador">
                             <div class="div-hora">
                                 <input type="time" class="form-control" @bind-value="hora_entrada_s" />
@@ -249,7 +454,10 @@
                             }
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador"  Title="Hora de salida Sábados">
+                    <RadzenDataGridColumn 
+                        TItem="Colaborador"
+                        Title="Hora de salida Sábados"
+                    >
                         <EditTemplate Context="colaborador">
                             <div class="div-hora">
                                 <input type="time" class="form-control" @bind-value="hora_salida_s" />
@@ -263,7 +471,11 @@
                             }
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Colaborador" Property="usuario_adiciono" Title="Usuario que adicionó">
+                    <RadzenDataGridColumn 
+                        TItem="Colaborador"
+                        Property="usuario_adiciono"
+                        Title="Usuario que adicionó"
+                    >
                         <EditTemplate Context="colaborador">
                             @colaborador.usuario_adiciono
                         </EditTemplate>
@@ -312,22 +524,54 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Área</label>
-                    <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value=@filtros.area TValue="string" Data="@(areas)" AllowClear="true" Style="width: 100%">
+                    <RadzenDropDown 
+                        AllowFiltering="true"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        @bind-Value=@filtros.area
+                        TValue="string"
+                        Data="@(areas)"
+                        AllowClear="true"
+                        Style="width: 100%"
+                    >
                     </RadzenDropDown>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Sede</label>
-                    <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value=@filtros.sede TValue="string" Data="@(sedes)" AllowClear="true" Style="width: 100%">
+                    <RadzenDropDown 
+                        AllowFiltering="true"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        @bind-Value=@filtros.sede 
+                        TValue="string"
+                        Data="@(sedes)"
+                        AllowClear="true" Style="width: 100%">
                     </RadzenDropDown>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Tipo de reporte</label>
-                    <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value=@filtros.tipo_reporte TValue="string" Data="@(tipos_registro)" AllowClear="true" Style="width: 100%">
+                    <RadzenDropDown 
+                        AllowFiltering="true"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        @bind-Value=@filtros.tipo_reporte
+                        TValue="string"
+                        Data="@(tipos_registro)"
+                        AllowClear="true"
+                        Style="width: 100%"
+                    >
                     </RadzenDropDown>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Jefe inmediato</label>
-                    <RadzenDropDown AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value=@filtros.jefe_inmediato TValue="long?" Data="@(jefes)" ValueProperty="cedula" LoadData="@LoadDataJefes" AllowClear="true" Style="width: 100%">
+                    <RadzenDropDown 
+                        AllowFiltering="true"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        @bind-Value=@filtros.jefe_inmediato
+                        TValue="long?"
+                        Data="@(jefes)"
+                        ValueProperty="cedula"
+                        LoadData="@LoadDataJefes"
+                        AllowClear="true"
+                        Style="width: 100%"
+                    >
                         <Template>
                             @context.nombres @context.apellidos
                         </Template>
@@ -354,52 +598,118 @@
 
         <div class="card-body" >
             <button id="tabla-asistencias" class="btn btn-primary mb-3" @onclick="DescargarExcelAsistencias">Reporte excel</button>
-            <RadzenDataGridApp ExpandMode="DataGridExpandMode.Multiple"
-                               Data="registros_asistencias"
-                               TItem="RegistroAsistenciaDTO"
-                               IsLoading=@_isLoadingRegistrosAsistencia>
+            <RadzenDataGridApp 
+                Data="registros_asistencias"
+                TItem="RegistroAsistenciaDTO"
+                IsLoading=@_isLoadingRegistrosAsistencia
+            >
                 <Columns>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" TextAlign="TextAlign.Center" Title="Ubicación">
+                    <RadzenDataGridColumn 
+                        TItem="RegistroAsistenciaDTO"
+                        TextAlign="TextAlign.Center"
+                        Title="Ubicación"
+                    >
                         <Template Context="data">
                             <input type="image" style="width:20px" src="images/maps.png" @onclick=@(() => VerUbicacion(data)) />
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="fecha_adicion" Title="Fecha">
+                    <RadzenDataGridColumn 
+                        TItem="RegistroAsistenciaDTO"
+                        Property="fecha_adicion"
+                        Title="Fecha"
+                    >
                         <Template Context="data">
                             @(Convert.ToDateTime(data.fecha_adicion).ToString("dddd, dd MMMM yyyy", new CultureInfo("es-ES")))
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="fecha_adicion" Title="Hora">
+                    <RadzenDataGridColumn 
+                        TItem="RegistroAsistenciaDTO"
+                        Property="fecha_adicion"
+                        Title="Hora"
+                    >
                         <Template Context="data">
                             @(Convert.ToDateTime(data.fecha_adicion).ToString("hh:mm:ss tt"))
                         </Template>
                     </RadzenDataGridColumn>
-
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="tipo_reporte" Title="Registro"></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Title="Horario">
+                    <RadzenDataGridColumn
+                        TItem="RegistroAsistenciaDTO"
+                        Property="tipo_reporte"
+                        Title="Registro"
+                    >
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn 
+                        TItem="RegistroAsistenciaDTO"
+                        Title="Horario"
+                    >
                         <Template Context="data">
                             @_colaboradorService.GetHorarioRegistroAsistencia(data)
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Title="Estado">
+                    <RadzenDataGridColumn 
+                        TItem="RegistroAsistenciaDTO"
+                        Title="Estado"
+                    >
                         <Template Context="data">
                             <center>
-                                <div style='width: 30px; height: 30px; -moz-border-radius: 50%; -webkit-border-radius: 50%; border-radius: 50%; background: @(_colaboradorService.GetColorAsistencia(data));'>
+                                <div class="circulo @(_colaboradorService.GetColorAsistencia(data))">
                                 </div>
                             </center>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="sede" Title="Sede"></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="cedula" Title="Cédula"></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="nombres" Title="Nombre"></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="apellidos" Title="Apellidos"></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="correo" Title="Correo institucional"></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="cargo" Title="Cargo"></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="jefe_inmediato" Title="Líder"></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="area" Title="Subproceso"></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="longitud" Title="Longitud"></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="latitud" Title="Latitud"></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RegistroAsistenciaDTO" Property="ip_address" Title="Dirección IP"></RadzenDataGridColumn>
+                    <RadzenDataGridColumn
+                        TItem="RegistroAsistenciaDTO"
+                        Property="sede"
+                        Title="Sede"
+                    >
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn 
+                        TItem="RegistroAsistenciaDTO"
+                        Property="cedula" Title="Cédula">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn 
+                        TItem="RegistroAsistenciaDTO"
+                        Property="nombres" 
+                        Title="Nombre">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn 
+                        TItem="RegistroAsistenciaDTO"
+                        Property="apellidos" 
+                        Title="Apellidos">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn 
+                        TItem="RegistroAsistenciaDTO"
+                        Property="correo"
+                        Title="Correo institucional">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn 
+                        TItem="RegistroAsistenciaDTO"
+                        Property="cargo" Title="Cargo">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn 
+                        TItem="RegistroAsistenciaDTO"
+                        Property="jefe_inmediato"
+                        Title="Líder">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn 
+                        TItem="RegistroAsistenciaDTO"
+                        Property="area" 
+                        Title="Subproceso">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn 
+                        TItem="RegistroAsistenciaDTO" 
+                        Property="longitud" 
+                        Title="Longitud">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn 
+                        TItem="RegistroAsistenciaDTO"
+                        Property="latitud" 
+                        Title="Latitud">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn 
+                        TItem="RegistroAsistenciaDTO"
+                        Property="ip_address" 
+                        Title="Dirección IP">
+                    </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGridApp>
         </div>
@@ -531,10 +841,17 @@
                  width="1000">
     <CuerpoModal>
         <center>
-            <RadzenGoogleMap @ref=map style="height: 400px" Options=@(new Dictionary<string, object> { { "disableDoubleClickZoom", true } })
-                             Zoom=@zoom Center=@(new GoogleMapPosition() { Lat = lat_maps, Lng = lng_maps })>
+            <RadzenGoogleMap 
+                @ref=map 
+                style="height: 400px"
+                Options=@(new Dictionary<string, object> { { "disableDoubleClickZoom", true } })
+                 Zoom=@zoom
+                 Center=@(new GoogleMapPosition() { Lat = lat_maps, Lng = lng_maps })>
                 <Markers>
-                    <RadzenGoogleMapMarker Title=@titulo_marcador_maps Label=@titulo_marcador_maps Position=@(new GoogleMapPosition() { Lat = lat_maps, Lng = lng_maps }) />
+                    <RadzenGoogleMapMarker 
+                        Title=@titulo_marcador_maps
+                        Label=@titulo_marcador_maps
+                        Position=@(new GoogleMapPosition() { Lat = lat_maps, Lng = lng_maps }) />
                 </Markers>
             </RadzenGoogleMap>
         </center>
@@ -557,15 +874,21 @@
     private _ModalComponent _modalMaps;
     private string titulo_modal_maps = "";
 
-    private TimeOnly? hora_entrada_lv;
-    private TimeOnly? hora_salida_lv;
+    //Manejo de horas
+
+    private TimeOnly? hora_entrada_lj;
+    private TimeOnly? hora_salida_lj;
+    private TimeOnly? hora_entrada_v;
+    private TimeOnly? hora_salida_v;
     private TimeOnly? hora_entrada_s;
     private TimeOnly? hora_salida_s;
 
     private void limpiarHoras()
     {
-        hora_entrada_lv = null;
-        hora_salida_lv = null;
+        hora_entrada_lj = null;
+        hora_salida_lj = null;
+        hora_entrada_v = null;
+        hora_salida_v = null;
         hora_entrada_s = null;
         hora_salida_s = null;
     }
@@ -617,38 +940,6 @@
     private IEnumerable<long?> selectedJefeIds;
     private IEnumerable<string> selectedAreaIds;
     private IEnumerable<long?> selectedEstadoIds;
-
-    void OnselectedEstadoIdsChange(object value)
-    {
-        if (selectedEstadoIds != null && !selectedEstadoIds.Any())
-        {
-            selectedEstadoIds = null;
-        }
-    }
-
-    void OnselectedSedeIdsChange(object value)
-    {
-        if (selectedSedeIds != null && !selectedSedeIds.Any())
-        {
-            selectedSedeIds = null;
-        }
-    }
-
-    void OnselectedAreaIdsChange(object value)
-    {
-        if (selectedAreaIds != null && !selectedAreaIds.Any())
-        {
-            selectedAreaIds = null;
-        }
-    }
-
-    void OnselectedJefeIdsChange(object value)
-    {
-        if (selectedJefeIds != null && !selectedJefeIds.Any())
-        {
-            selectedJefeIds = null;
-        }
-    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -771,11 +1062,17 @@
     {
         colaboradorToUpdate = colaborador;
 
-        if(colaboradorToUpdate.hora_entrada_lv is not null)
-            hora_entrada_lv = TimeOnly.FromTimeSpan(colaboradorToUpdate.hora_entrada_lv.GetValueOrDefault());
+        if(colaboradorToUpdate.hora_entrada_lj is not null)
+            hora_entrada_lj = TimeOnly.FromTimeSpan(colaboradorToUpdate.hora_entrada_lj.GetValueOrDefault());
 
-        if (colaboradorToUpdate.hora_salida_lv is not null)
-            hora_salida_lv = TimeOnly.FromTimeSpan(colaboradorToUpdate.hora_salida_lv.GetValueOrDefault());
+        if (colaboradorToUpdate.hora_salida_lj is not null)
+            hora_salida_lj = TimeOnly.FromTimeSpan(colaboradorToUpdate.hora_salida_lj.GetValueOrDefault());
+
+        if (colaboradorToUpdate.hora_entrada_v is not null)
+            hora_entrada_v = TimeOnly.FromTimeSpan(colaboradorToUpdate.hora_entrada_v.GetValueOrDefault());
+
+        if (colaboradorToUpdate.hora_salida_v is not null)
+            hora_salida_v = TimeOnly.FromTimeSpan(colaboradorToUpdate.hora_salida_v.GetValueOrDefault());
 
         if (colaboradorToUpdate.hora_entrada_s is not null)
             hora_entrada_s = TimeOnly.FromTimeSpan(colaboradorToUpdate.hora_entrada_s.GetValueOrDefault());
@@ -859,14 +1156,24 @@
     {
         colaborador.usuario_adiciono = userSession.UserName;
 
-        if(this.hora_entrada_lv is not null)
+        if(this.hora_entrada_lj is not null)
         {
-            colaborador.hora_entrada_lv = this.hora_entrada_lv.GetValueOrDefault().ToTimeSpan();
+            colaborador.hora_entrada_lj = this.hora_entrada_lj.GetValueOrDefault().ToTimeSpan();
         }
 
-        if(this.hora_salida_lv is not null)
+        if(this.hora_salida_lj is not null)
         {
-            colaborador.hora_salida_lv = this.hora_salida_lv.GetValueOrDefault().ToTimeSpan();
+            colaborador.hora_salida_lj = this.hora_salida_lj.GetValueOrDefault().ToTimeSpan();
+        }
+
+        if (this.hora_entrada_v is not null)
+        {
+            colaborador.hora_entrada_v = this.hora_entrada_v.GetValueOrDefault().ToTimeSpan();
+        }
+
+        if (this.hora_salida_v is not null)
+        {
+            colaborador.hora_salida_v = this.hora_salida_v.GetValueOrDefault().ToTimeSpan();
         }
 
         if(this.hora_entrada_s is not null)
@@ -1055,5 +1362,37 @@
         jefes = jefes.Where(j => j.nombres.ToLower().Contains(args.Filter.ToLower()) || j.apellidos.ToLower().Contains(args.Filter.ToLower()));
 
         StateHasChanged();
+    }
+
+    void OnselectedEstadoIdsChange(object value)
+    {
+        if (selectedEstadoIds != null && !selectedEstadoIds.Any())
+        {
+            selectedEstadoIds = null;
+        }
+    }
+
+    void OnselectedSedeIdsChange(object value)
+    {
+        if (selectedSedeIds != null && !selectedSedeIds.Any())
+        {
+            selectedSedeIds = null;
+        }
+    }
+
+    void OnselectedAreaIdsChange(object value)
+    {
+        if (selectedAreaIds != null && !selectedAreaIds.Any())
+        {
+            selectedAreaIds = null;
+        }
+    }
+
+    void OnselectedJefeIdsChange(object value)
+    {
+        if (selectedJefeIds != null && !selectedJefeIds.Any())
+        {
+            selectedJefeIds = null;
+        }
     }
 }
