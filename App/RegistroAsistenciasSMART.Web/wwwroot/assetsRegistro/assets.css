@@ -1,8 +1,13 @@
 ﻿@import url("https://fonts.googleapis.com/css?family=Poppins:400,500,600");
 
+html{
+    height: 100%;
+}
+
 body {
     /*background-color: #c91212 !important;*/
     font-family: 'Poppins',sans-serif !important;
+    height: 100%;
 }
 
 .background {
